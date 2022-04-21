@@ -277,3 +277,61 @@ ssh-keygen -t rsa -C 邮箱(user.email)
 
 生成文件中的进入id_rsa.pub将其中内容复制到远程库setting中的SSH and GPG keys 中
 
+# GitLab
+
+## 简介
+
+GitLab是由GitLabInc开发，使用MIT许可证的基于网络的Git仓库管理工具，且具有wiki和issue跟踪功能。使用Git作为代码管理工具，并在此基础上搭建起来的web服务
+
+## 安装
+
+https://about.gitlab.cn/install/
+
+## 服务器准备
+
+准备一个系统为CentOS7以上版本的服务器，要求内存4G，磁盘50G
+
+关闭防火墙，并且配置好主机名和ip，保证服务器能够上网
+
+## 安装包准备
+
+官网参考——
+
+1. 从https://packages.gitlab.com/gitlab/gitlab-ce/packages/el/7/gitlab-ce-13.10.2-ce.0.el7.x86_64.rpm下载rpm文件
+2. 使用Xftp将rpm文件传到服务器中
+3. 在系统防火墙中打开Http、Https、ssh访问
+
+```
+sudo yum install -y curl policycoreutils-python openssh-server perl
+sudo systemctl enable sshd
+sudo systemctl start sshd
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --permanent --add-service=https
+sudo systemctl reload firewalld
+```
+
+4. 确保已经正确的设置DNS，并更改https://gitlab.example.com为访问极狐GitLab实例的URL。安装包将在该URL上自动配置和启动极狐GitLab。建议将极狐GitLab实例的域名以环境变量的形式注入
+
+```
+export EXTERNAL_URL=https://gitlab.example.com
+```
+
+5. 执行安装命令
+
+```
+sudo rpm -Uvh gitlab-jh-14.9.3-jh.0.el7.x86_64.rpm
+```
+
+6. 服务初始化
+
+```
+gitlab-ctl reconfigure
+```
+
+7. 启动服务
+
+```
+gitlab-ctl start
+```
+
+8. 输入网址进入gitlab，初始化密码
