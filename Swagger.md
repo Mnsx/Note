@@ -213,3 +213,42 @@ public class User {
 3. 可以在线测试
 
 **在正式发布的时候，关闭swagger，处于安全考虑，而且节省运行的内存**
+
+
+
+# 使用swagger-spring-boot-starter
+
+1. 添加依赖
+
+   ```xml
+           <!-- swagger -->
+           <dependency>
+               <groupId>com.battcn</groupId>
+               <artifactId>swagger-spring-boot-starter</artifactId>
+               <version>2.1.5-RELEASE</version>
+           </dependency>
+   ```
+
+2. 添加配置
+
+   ```yaml
+   # 开发环境
+   spring:
+     # swagger 配置
+     swagger:
+       enabled: true
+       title: '后台API接口开发文档'
+       description: 'API开发文档'
+       version: 1.4.1
+       contact:
+         name: 'Mnsx_x'
+         url: 'https://github.com/Mnsx'
+         email: 'xx1527030652@gmail.com'
+         
+   spring:
+     mvc:
+       pathmatch:
+         matching-strategy: ant_path_matcher
+   ```
+
+   

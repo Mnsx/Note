@@ -36,27 +36,27 @@ class UserFactory{
 
 2. Spring提供IOC容器实现方式：（两个接口）
 
-1. 1. BeanFactory——IOC容器基本实现，是Spring内部使用接口，不提供开发人员进行处理
+   * BeanFactory——IOC容器基本实现，是Spring内部使用接口，不提供开发人员进行处理
 
-      **加载配置文件时候不会创建对象，在获取对象（使用）才去创建对象**
+     **加载配置文件时候不会创建对象，在获取对象（使用）才去创建对象**
 
-1. 2. ApplicationContext——BeanFactory接口得子接口，提供更强大得功能，一般由开发人员进行使用
+   * ApplicationContext——BeanFactory接口得子接口，提供更强大得功能，一般由开发人员进行使用
 
-​			  **加载配置文件时候会把配置文件对象进行创建**
+​			  	**加载配置文件时候会把配置文件对象进行创建**
 
 3. ApplicationContext
 
 - ——ConfigurableApplicationContext
 
-- - ——AbstractApplicationContext
+  * ——AbstractApplicationContext
 
-- - - ——AbstractRefreshableApplicationContext
+    * ——AbstractRefreshableApplicationContext
 
-- - - - ——AbstractXmlApplicationContext
+      *  ——AbstractXmlApplicationContext
 
-- - - - - **——FileSystemXmlApplicationContext——实现类**
+        * **——FileSystemXmlApplicationContext——实现类**
 
-        - **——ClassPathXmlApplicationContext——实现类**
+        * **——ClassPathXmlApplicationContext——实现类**
 
 ## IOC操作Bean管理
 
@@ -71,21 +71,23 @@ class UserFactory{
 
 1. 基于xml方式创建对象
 
-1. 1. 在spring配置文件中，使用bean标签，标签里面添加对应得属性，就可以实现对象创建
-   2. 在bean标签有很多属性，介绍常用得属性——
+   * 在spring配置文件中，使用bean标签，标签里面添加对应得属性，就可以实现对象创建
 
-- - - id属性——唯一标识
-    - class属性——创建对象所在类的全路径
+   * 在bean标签有很多属性，介绍常用得属性——
 
-1. 3. 创建对象时候，默认也是执行的无参构造方法完成对象创建
+       * id属性——唯一标识
+
+       - class属性——创建对象所在类的全路径
+
+   * 创建对象时候，默认也是执行的无参构造方法完成对象创建
 
 2. 基于xml方式注入属性
 
 ​       **DI：依赖注入，就是注入属性**
 
-1. 1. 第一种注入方式——使用set方法进行注入
+* 第一种注入方式——使用set方法进行注入
 
-1. 1. 1. 创建类，定义属性和对应的set方法
+  1.创建类，定义属性和对应的set方法
 
 ```java
 public class Book{
@@ -102,7 +104,7 @@ public class Book{
 }
 ```
 
-1. 1. 2. 在spring配置文件配置对象创建，配置属性注入
+2. 在spring配置文件配置对象创建，配置属性注入
 
 ```xml
 <!-- set方法注入属性 -->
@@ -116,9 +118,9 @@ public class Book{
 </bean>
 ```
 
-1. 2. 第二种注入方式——使用有参构造方法进行注入 
+* 第二种注入方式——使用有参构造方法进行注入 
 
-1. 1. 1. 创建类，定义属性和对应的构造方法
+1. 创建类，定义属性和对应的构造方法
 
 ```java
 public class Orders{
@@ -132,7 +134,7 @@ public class Orders{
 }
 ```
 
-1. 1. 2. 在spring配置文件配置对象创建，配置属性注入
+2. 在spring配置文件配置对象创建，配置属性注入
 
 ```xml
 <bean id="orders" class="top.mnsx.springstudy.Orders">
@@ -141,17 +143,17 @@ public class Orders{
 </bean>
 ```
 
-1. 3. set方法注入简化——p名称空间注入
+* set方法注入简化——p名称空间注入
 
-1. 1. 1. 使用p名称注入，可以简化xml配置方式
+1. 使用p名称注入，可以简化xml配置方式
 
-- - 2. 添加p名称空间
+2. 添加p名称空间
 
 ```xml
 <beans xmlns:p="http://www.springgramework.org/schema/p"></beans>
 ```
 
-- - 3. 进行属性注入，在bean标签里面进行操作
+3. 进行属性注入，在bean标签里面进行操作
 
 ```xml
 <bean id="book" class="top.mnsx.springstudy.Book" p:bname="九阳神功" p:bauthor="无名氏"></bean>
@@ -160,8 +162,7 @@ public class Orders{
 ## IOC操作Bean管理（xml注入其他类型属性）
 
 1. 注入属性——字面量
-
-1. 1. null值
+   1. null值
 
 ```xml
 <property name="address">
@@ -169,7 +170,7 @@ public class Orders{
 </property>
 ```
 
-1. 2. 属性值含特殊符号
+​					2. 属性值含特殊符号
 
 ```xml
 <!--使用转移符号-->
@@ -182,10 +183,11 @@ public class Orders{
 
 2. 注入属性——外部Bean
 
-1. 1. 创建两个类service类和dao类
+   1. 创建两个类service类和dao类
+
    2. 在service调用dao里面的方法
 
-1. 3. 在Spring配置文件中配置
+   3. 在Spring配置文件中配置
 
 ```java
 public class UserService {
@@ -216,7 +218,8 @@ public class UserDaoIpml{
 
 3. 注入属性——内部Bean
 
-1. 1. 一对多关系：部门与员工
+   1. 一对多关系：部门与员工
+
    2. 再实体类之间表示一对多的关系，员工表示所属部门，使用对象类型属性进行表示
 
 ```java
@@ -252,8 +255,8 @@ public class Emp{
 ```
 
 4. 注入属性——级联赋值
-
-1. 1. 第一种写法
+   
+   第一种写法
 
 ```java
 public class Dept {
@@ -287,7 +290,7 @@ public class Emp{
 </bean>
 ```
 
-1. 2. 第二种写法
+第二种写法
 
 ```java
 public class Dept {

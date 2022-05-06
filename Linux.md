@@ -943,3 +943,69 @@ https://www.bilibili.com/video/BV1Sv411r7vd?p=59
   --max-depth=1 子目录深度
 
   -c 理出明细的同时，增加汇总值
+
+## 虚拟机网络配置
+
+`vim /etc/sysconfig/network-script/ifcfg-ens33`
+
+修改网络配置文件
+
+```
+TYPE="Ethernet"
+PROXY_METHOD="none"
+BROWSER_ONLY="no"
+BOOTPROTO="static"
+DEFROUTE="yes"
+IPV4_FAILURE_FATAL="no"
+IPV6INIT="yes"
+IPV6_AUTOCONF="yes"
+IPV6_DEFROUTE="yes"
+IPV6_FAILURE_FATAL="no"
+IPV6_ADDR_GEN_MODE="stable-privacy"
+NAME="ens33"
+UUID="884c8ff0-a64d-448c-a54e-65cf9ead21a7"
+DEVICE="ens33"
+ONBOOT="yes"
+IPADDR=192.168.187.130
+GATEWAY=192.168.187.2
+DNS1=192.168.187.2
+```
+
+`service network restart`
+
+重启网络服务
+
+## 主机名和host映射
+
+`/etc/host`
+
+## 进程管理
+
+ps详解
+
+* 指令：`ps -aux | grep xxx`
+* 指令说明
+  * System V 展示风格
+  * USER 用户名称
+  * PID 进程号
+  * %CPU 进程占用CPU的百分比
+  * %MEM 进程占用物理内存的百分比
+  * VSZ 进程占用虚拟内存的大小
+  * RSS 进程占用物理内存的大小
+  * TTY 终端名称，缩写
+  * STAT 进程状态，其中S-睡眠，s-表示该进程是会话的先导进程，N-表示进程拥有比普通优先级更低的优先级，R-正在运行，D-短期等待，Z-僵死进程，T-被跟踪或者被停止等等
+  * STAETED：进程的启动时间
+  * TIME：CPU时间，即进程使用CPU的总时间
+  * COMMAND：启动进程所用的命令和参数，如果过长会被截断显示
+* 指令：`ps -ef | grep xxx`
+* 指令说明
+  * -e显示所有进程
+  * -f全格式
+  * UID 用户id
+  * PID 进程id
+  * ppid 父进程id
+  * c cup用于计算执行优先级的因子。数值越大，表明进程是cup密集型运算，执行优先级会降低。数值越小，表明进程是I/O密集型运算，执行优先级会提高
+  * STIME 进程启动时间
+  * TTY 完整的终端名称
+  * TIME CUP时间
+  * CMD 启动进程所用的命令和参数

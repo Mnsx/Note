@@ -766,7 +766,7 @@ SpringMVC中将上传的文件封装到MultipartFile对象中，通过此对象�
 引入commons-fileupload依赖
 
 ```java
-@ReqeustMapping("/testUp")
+	@ReqeustMapping("/testUp")
 public String testUp(MultipartFile photo, HttpSession session) {
     String fileName = photo.getOriginalFilename();
     ServletContext servletContext = session.getServletContext();
