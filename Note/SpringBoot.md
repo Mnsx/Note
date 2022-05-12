@@ -56,13 +56,13 @@
 
 ## 分布式
 
-![img](D:\Picture\Note\SpringBoot\分布式模型)
+![img](..\Picture\SpringBoot\分布式模型)
 
 **分布式的解决**
 
 SpringBoot + SpringCloud
 
-![img](D:\Picture\Note\SpringBoot\Spring微服务解决)
+![img](..\Picture\SpringBoot\Spring微服务解决)
 
 ## 云原生
 

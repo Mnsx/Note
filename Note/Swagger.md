@@ -70,7 +70,7 @@ spring:
 
 5. 测试运行
 
-   ![Swagger-ui](D:\Picture\Note\Swagger\Swagger-ui.png)
+   ![Swagger-ui](..\Picture\Swagger\Swagger-ui.png)
 
 # 配置Swagger
 
@@ -232,7 +232,7 @@ public class User {
 2. 添加配置
 
    ```yaml
-   # 开发环境
+   # 开发环境S
    spring:
      # swagger 配置
      swagger:

@@ -1243,7 +1243,7 @@ public class UserService {
 
      * REQUIRED_NEW：使用add方法调用update方法，如果add无论是否有事务，都创建新的事务
 
-       ![image-20220411144241700](D:\Picture\事务传播行为.png)
+       ![image-20220411144241700](..\Picture\Spring\事务传播行为.png)
 
 3. ioslation：事务隔离级别
 
@@ -1257,7 +1257,7 @@ public class UserService {
 
    * 通过设置事务隔离性，来解决问题
 
-     ![事务隔离级别](D:\Picture\事务隔离级别.png)
+     ![事务隔离级别](..\Picture\Spring\事务隔离级别.png)
 
 4. timeout：超时时间
    * 事务需要在一定时间内进行提交，如果不提交进行回滚
@@ -1412,7 +1412,7 @@ public void testGenericApplicationContext() {
 
 5. 比较SpringMVC和SpringWebFlux
 
-   ![image-20220411225144683](C:\Users\Mnsx_x\AppData\Roaming\Typora\typora-user-images\image-20220411225144683.png)
+   ![image-20220411225144683](..\Picture\Spring\image-20220411225144683.png)
 
    * 两个框架都可以使用注解方式，都运行在tomcat等容器中
    * SpringMVC采用命令式编程，Webflux采用异步响应式编程

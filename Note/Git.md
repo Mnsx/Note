@@ -20,7 +20,7 @@ Git易于学习，占地面积小，性能极快，它具有廉价的本地库�
 
 ## 工作机制
 
-![image-20220419111332125](C:\Users\Mnsx_x\AppData\Roaming\Typora\typora-user-images\git工作机制.png)
+![image-20220419111332125](..\Picture\Git\git工作机制.png)
 
 ## Git和代码托管中心
 
@@ -136,7 +136,7 @@ git reset --hard 版本号
 
 # Git分支操作
 
-![image-20220419124816253](C:\Users\Mnsx_x\AppData\Roaming\Typora\typora-user-images\公司流程.png)
+![image-20220419124816253](..\Picture\Git\公司流程.png)
 
 公司服务运行模式
 
@@ -192,7 +192,7 @@ git checkout 分支名
 git merge 被融合的分支名
 ```
 
-![image-20220420084954764](C:\Users\Mnsx_x\AppData\Roaming\Typora\typora-user-images\分支合并.png)
+![image-20220420084954764](..\Picture\Git\分支合并.png)
 
 > 将hot-fix融合到master中
 

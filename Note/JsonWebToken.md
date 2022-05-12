@@ -1,4 +1,4 @@
-![image-20200726102546868](D:\Picture\Note\JWT/image-20200726102546868.png)
+![image-20200726102546868](..\Picture\JWT\JWT介绍.png)
 
 # JWT简介
 
@@ -34,7 +34,7 @@ t
 
 2.认证流程
 
-![image-20200726103959013](D:\Picture\Note\JWT/image-20200726103959013.png)
+![image-20200726103959013](..\Picture\JWT\/image-20200726103959013.png)
 
 3.暴露问题
 
@@ -48,11 +48,11 @@ t
 
 	也就是说前后端分离在应用解耦后增加了部署的复杂性。通常用户一次请求就要转发多次。如果用session 每次携带sessionid 到服务器，服务器还要查询用户信息。同时如果用户很多。这些信息存储在服务器内存中，给服务器增加负担。还有就是CSRF（跨站伪造请求攻	击）攻击，session是基于cookie进行用户识别的, cookie如果被截获，用户就会很容易受到跨站请求伪造的攻击。还有就是sessionid就是一个特征值，表达的信息不够丰富。不容易扩展。而且如果你后端应用是多节点部署。那么就需要实现session共享机制。不方便集群应用。
 
-![image-20200804212240422](D:\Picture\Note\JWT/image-20200804212240422.png)
+![image-20200804212240422](..\Picture\JWT\/image-20200804212240422.png)
 
 ## 基于JWT认证
 
-![image-20200726183248298](D:\Picture\Note\JWT/image-20200726183248298.png)
+![image-20200726183248298](..\Picture\JWT\/image-20200726183248298.png)
 
 1.认证流程
 
@@ -129,7 +129,7 @@ token   string  ====>  header.payload.singnature   token
 
 - 是的。所以，在JWT中，不应该在负载里面加入任何敏感的数据。在上面的例子中，我们传输的是用户的User ID。这个值实际上不是什么敏	感内容，一般情况下被知道也是安全的。但是像密码这样的内容就不能被放在JWT中了。如果将用户的密码放在了JWT中，那么怀有恶意的第	三方通过Base64解码就能很快地知道你的密码了。因此JWT适合用于向Web应用传递一些非敏感信息。JWT还经常用于设计用户认证和授权系	统，甚至实现Web应用的单点登录。
 
-![image-20200726181136113](D:\Picture\Note\JWT/image-20200726181136113.png)
+![image-20200726181136113](..\Picture\JWT\/image-20200726181136113.png)
 
 5.放在一起
 
@@ -141,7 +141,7 @@ token   string  ====>  header.payload.singnature   token
 
 	负载中包含了所有用户所需要的信息，避免了多次查询数据库
 
-![image-20200726124257203](D:\Picture\Note\JWT/image-20200726124257203.png)
+![image-20200726124257203](..\Picture\JWT\image-20200726124257203.png)
 
 # 使用JWT
 
@@ -193,7 +193,7 @@ System.out.println("过期时间: "+decodedJWT.getExpiresAt());
 - InvalidClaimException:								失效的payload异常
 ````
 
-![image-20200805184517282](D:\Picture\Note\JWT/image-20200805184517282.png)
+![image-20200805184517282](..\Picture\JWT\image-20200805184517282.png)
 
 # 封装工具类
 
@@ -298,7 +298,7 @@ logging.level.com.baizhi.dao=debug
 
 - 这里采用最简单的表结构验证JWT使用
 
-![image-20200805212226422](D:\Picture\Note\JWT/image-20200805212226422.png)
+![image-20200805212226422](..\Picture\JWT\image-20200805212226422.png)
 
 ```sql
 DROP TABLE IF EXISTS `user`;
@@ -322,7 +322,7 @@ public class User {
 }
 ```
 
-![image-20200805213539471](D:\Picture\Note\JWT/image-20200805213539471.png)
+![image-20200805213539471](..\Picture\JWT\image-20200805213539471.png)
 
 ## 3.开发DAO接口和mapper.xml
 
@@ -333,7 +333,7 @@ public interface UserDAO {
 }
 ```
 
-![image-20200805213603655](D:\Picture\Note\JWT/image-20200805213603655.png)
+![image-20200805213603655](..\Picture\JWT\image-20200805213603655.png)
 
 ```xml
 <mapper namespace="com.baizhi.dao.UserDAO">
@@ -344,7 +344,7 @@ public interface UserDAO {
 </mapper>
 ```
 
-![image-20200805213628252](D:\Picture\Note\JWT/image-20200805213628252.png)
+![image-20200805213628252](..\Picture\JWT\image-20200805213628252.png)
 
 ## 4.开发Service 接口以及实现类
 
@@ -354,7 +354,7 @@ public interface UserService {
 }
 ```
 
-![image-20200805213648147](D:\Picture\Note\JWT/image-20200805213648147.png)
+![image-20200805213648147](..\Picture\JWT\image-20200805213648147.png)
 
 ````java
 @Service
@@ -374,7 +374,7 @@ public class UserServiceImpl implements UserService {
 }
 ````
 
-![image-20200805213704965](D:\Picture\Note\JWT/image-20200805213704965.png)
+![image-20200805213704965](..\Picture\JWT\image-20200805213704965.png)
 
 ## 5.开发controller
 
@@ -408,21 +408,21 @@ public class UserController {
 }
 ```
 
-![image-20200805214235426](D:\Picture\Note\JWT/image-20200805214235426.png)
+![image-20200805214235426](..\Picture\JWT\image-20200805214235426.png)
 
 ## 6.数据库添加测试数据启动项目
 
-![image-20200805214324868](D:\Picture\Note\JWT/image-20200805214324868.png)
+![image-20200805214324868](..\Picture\JWT\image-20200805214324868.png)
 
-![image-20200805214424786](D:\Picture\Note\JWT/image-20200805214424786.png)
+![image-20200805214424786](..\Picture\JWT\image-20200805214424786.png)
 
 ## 7.通过postman模拟登录失败
 
-![image-20200805214610668](D:\Picture\Note\JWT/image-20200805214610668.png)
+![image-20200805214610668](..\Picture\JWT\image-20200805214610668.png)
 
 ## 8.通过postman模拟登录成功
 
-![image-20200805214749469](D:\Picture\Note\JWT/image-20200805214749469.png)
+![image-20200805214749469](..\Picture\JWT\image-20200805214749469.png)
 
 ## 9.编写测试接口
 
@@ -452,13 +452,13 @@ public Map<String, Object> test(String token) {
 }
 ```
 
-![image-20200805215119590](D:\Picture\Note\JWT/image-20200805215119590.png)
+![image-20200805215119590](..\Picture\JWT\image-20200805215119590.png)
 
 ## 10.通过postman请求接口
 
-![image-20200805215337303](D:\Picture\Note\JWT/image-20200805215337303.png)
+![image-20200805215337303](..\Picture\JWT\image-20200805215337303.png)
 
-![image-20200805215451442](D:\Picture\Note\JWT/image-20200805215451442.png)
+![image-20200805215451442](..\Picture\JWT\image-20200805215451442.png)
 
 ## 11.问题
 

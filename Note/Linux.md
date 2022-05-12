@@ -1039,7 +1039,7 @@ ps详解
 
   3. service指令管理的服务在/etc/init.d中查看
 
-     ![image-20220508085403787](D:\Picture\Note\Redis\service指令管理的服务.png)
+     ![image-20220508085403787](..\Picture\Linux\service指令管理的服务.png)
 
 * 服务的运行级别（runlevel）
 
@@ -1059,7 +1059,7 @@ ps详解
 
   运行级别6：系统正常关闭并重启，默认运行级别不能设为6，否则不能正常启动
 
-![image-20220508090825472](D:\Picture\Note\Linux\开机流程)
+![image-20220508090825472](..\Picture\Linux\开机流程)
 
 * chkconfig指令
 

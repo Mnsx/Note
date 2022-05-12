@@ -174,7 +174,7 @@
 
 ## 基本运行原理
 
-![image-20220424190047049](D:\Picture\Note\Nginx\基本运行原理.png)
+![image-20220424190047049](..\Picture\Nginx\基本运行原理.png)
 
 ## Nginx最小配置
 
@@ -208,9 +208,9 @@
 
   使用linux的sendfile(socket, file, len)高效网络传输，也就是数据0拷贝
 
-  ![image-20220424190506093](D:\Picture\Note\Nginx\未开启sendfile.png)
+  ![image-20220424190506093](..\Picture\Nginx\未开启sendfile.png)
 
-![image-20220424190615174](D:\Picture\Note\Nginx\开启sendfile.png)
+![image-20220424190615174](..\Picture\JWT\Nginx\开启sendfile.png)
 
 * keepalive_timeout
 

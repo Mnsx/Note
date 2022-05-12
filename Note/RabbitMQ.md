@@ -77,11 +77,11 @@ RabbitMQ 是一个消息中间件：它接受并转发消息。你可以把它�
 
 ## Rabbit核心部分
 
-![image-20220424144742637](D:\Picture\Note\RabbitMQ\核心模式.png)
+![image-20220424144742637](..\Picture\RabbitMQ\核心模式.png)
 
 ## 常用名词解释
 
-![image-20220424145213995](D:\Picture\Note\RabbitMQ\工作原理)
+<img src="..\Picture\RabbitMQ\工作原理" alt="image-20220424145213995"  />
 
 * **Broker**：接收和分发消息的应用，RabbitMQ Server 就是 Message Broker
 * **Virtual host**：出于多租户和安全因素设计的，把 AMQP 的基本组件划分到一个虚拟的分组中，类似于网络中的 namespace 概念。当多个不同的用户使用同一个 RabbitMQ server 提供的服务时，可以划分出多个 vhost，每个用户在自己的 vhost 创建 exchange／queue 等
@@ -93,7 +93,7 @@ RabbitMQ 是一个消息中间件：它接受并转发消息。你可以把它�
 
 ## 安装
 
-![image-20220509093218104](D:\Picture\Note\RabbitMQ\安装流程)
+![image-20220509093218104](..\Picture\RabbitMQ\安装流程)
 
 开启web管理插件
 
@@ -139,7 +139,7 @@ RabbitMQ 是一个消息中间件：它接受并转发消息。你可以把它�
 
 在下图中，“ P”是我们的生产者，“ C”是我们的消费者。中间的框是一个队列-RabbitMQ 代 表使用者保留的消息缓冲区
 
-![image-20220509124658457](D:\Picture\Note\RabbitMQ\默认模式.png)
+![image-20220509124658457](..\Picture\RabbitMQ\默认模式.png)
 
 * 添加依赖
 
@@ -312,7 +312,7 @@ RabbitMQ 是一个消息中间件：它接受并转发消息。你可以把它�
 
   通过程序执行发现生产者总共发送 4 个消息，消费者 1 和消费者 2 分别分得两个消息，并且 是按照有序的一个接收一次消息
 
-  ![image-20220509125122043](D:\Picture\Note\RabbitMQ\工作队列结果展示.png)
+  ![image-20220509125122043](..\Picture\RabbitMQ\工作队列结果展示.png)
 
 # 消息应答
 
@@ -342,7 +342,7 @@ RabbitMQ 是一个消息中间件：它接受并转发消息。你可以把它�
 
 **手动应答的好处是可以批量应答并且减少网络拥堵**
 
-![image-20220510101632658](D:\Picture\Note\RabbitMQ\multiple解释) 
+![image-20220510101632658](..\Picture\RabbitMQ\multiple解释) 
 
 multiple 的 true 和 false 代表不同意思
 
@@ -358,7 +358,7 @@ multiple 的 true 和 false 代表不同意思
 
 如果消费者由于某些原因失去连接(其通道已关闭，连接已关闭或 TCP 连接丢失)，导致消息 未发送 ACK 确认，RabbitMQ 将了解到消息未完全处理，并将对其重新排队。如果此时其他消费者 可以处理，它将很快将其重新分发给另一个消费者。这样，即使某个消费者偶尔死亡，也可以确 保不会丢失任何消息。
 
-![image-20220510101953504](D:\Picture\Note\RabbitMQ\消息自动重新入队.png)
+![image-20220510101953504](..\Picture\RabbitMQ\消息自动重新入队.png)
 
 ## 消息手动应答代码
 
@@ -461,19 +461,19 @@ multiple 的 true 和 false 代表不同意思
 
 之前我们创建的队列都是非持久化的，rabbitmq 如果重启的化，该队列就会被删除掉，如果 要队列实现持久化 需要在声明队列的时候把 durable 参数设置为持久化
 
-![image-20220510111636335](D:\Picture\Note\RabbitMQ\队列持久化.png)
+![image-20220510111636335](..\Picture\RabbitMQ\队列持久化.png)
 
 但是需要注意的就是如果之前声明的队列不是持久化的，需要把原先队列先删除，或者重新 创建一个持久化的队列，不然就会出现错误
 
 ![image-20220510111708921](D:\Picture\Note\RabbitMQ\队列持久化报错.png)
 
-![image-20220510111749819](D:\Picture\Note\RabbitMQ\队列持久化在控制台的反应.png)
+![image-20220510111749819](..\Picture\RabbitMQ\队列持久化在控制台的反应.png)
 
 ## 消息实现持久化
 
 要想让消息实现持久化需要在消息生产者修改代码，MessageProperties.PERSISTENT_TEXT_PLAIN 添 加这个属性。
 
-![image-20220510111033338](D:\Picture\Note\RabbitMQ\消息实现持久化.png)
+![image-20220510111033338](..\Picture\RabbitMQ\消息实现持久化.png)
 
 将消息标记为持久化并不能完全保证不会丢失消息。尽管它告诉 RabbitMQ 将消息保存到磁盘，但是 这里依然存在当消息刚准备存储在磁盘的时候 但是还没有存储完，消息还在缓存的一个间隔点。此时并没 有真正写入磁盘。持久性保证并不强，但是对于我们的简单任务队列而言，这已经绰绰有余了。如果需要 更强有力的持久化策略：发布确认
 
@@ -507,9 +507,9 @@ public class Producers {
 
 为了避免这种情况，我们可以设置参数 channel.basicQos(1);
 
-![image-20220510111206381](D:\Picture\Note\RabbitMQ\不公平分发)
+![image-20220510111206381](..\Picture\RabbitMQ\不公平分发)
 
-![image-20220510111240801](D:\Picture\Note\RabbitMQ\不公平分发流程图.png)
+![image-20220510111240801](..\Picture\RabbitMQ\不公平分发流程图.png)
 
 意思就是如果这个任务我还没有处理完或者我还没有应答你，你先别分配给我，我目前只能处理一个 任务，然后 rabbitmq 就会把该任务分配给没有那么忙的那个空闲消费者，当然如果所有的消费者都没有完 成手上任务，队列还在不停的添加新任务，队列有可能就会遇到队列被撑满的情况，这个时候就只能添加 新的 worker 或者改变其他存储任务的策略。
 
@@ -567,7 +567,7 @@ public class Consumers2 {
 
 > 本身消息的发送就是异步发送的，所以在任何时候，channel 上肯定不止只有一个消息另外来自消费 者的手动确认本质上也是异步的。因此这里就存在一个未确认的消息缓冲区，因此希望开发人员能限制此 缓冲区的大小，以避免缓冲区里面无限制的未确认消息问题。这个时候就可以通过使用 basic.qos 方法设 置“预取计数”值来完成的。该值定义通道上允许的未确认消息的最大数量。一旦数量达到配置的数量， RabbitMQ 将停止在通道上传递更多消息，除非至少有一个未处理的消息被确认，例如，假设在通道上有 未确认的消息 5、6、7，8，并且通道的预取计数设置为 4，此时 RabbitMQ 将不会在该通道上再传递任何 消息，除非至少有一个未应答的消息被 ack。比方说 tag=6 这个消息刚刚被确认 ACK，RabbitMQ 将会感知 这个情况到并再发送一条消息。消息应答和 QoS 预取值对用户吞吐量有重大影响。通常，增加预取将提高 向消费者传递消息的速度。虽然自动应答传输消息速率是最佳的，但是，在这种情况下已传递但尚未处理 的消息的数量也会增加，从而增加了消费者的 RAM 消耗(随机存取存储器)应该小心使用具有无限预处理 的自动确认模式或手动确认模式，消费者消费了大量的消息如果没有确认的话，会导致消费者连接节点的 内存消耗变大，所以找到合适的预取值是一个反复试验的过程，不同的负载该值取值也不同 100 到 300 范 围内的值通常可提供最佳的吞吐量，并且不会给消费者带来太大的风险。预取值为 1 是最保守的。当然这 将使吞吐量变得很低，特别是消费者连接延迟很严重的情况下，特别是在消费者连接等待时间较长的环境 中。对于大多数应用来说，稍微高一点的值将是最佳的。
 
-![image-20220510112703519](D:\Picture\Note\RabbitMQ\预取值.png)
+![image-20220510112703519](..\Picture\RabbitMQ\预取值.png)
 
 个人感觉类似于权值的含义
 
@@ -633,7 +633,7 @@ confirm 模式最大的好处在于他是异步的，一旦发布一条消息，
 
 发布确认默认是没有开启的，如果要开启需要调用方法 confirmSelect，每当你要想使用发布 确认，都需要在 channel 上调用该方法
 
-![image-20220510212815547](D:\WorkSpace\Note\Picture\RabbitMQ\开启发布确认)
+![image-20220510212815547](..\Picture\RabbitMQ\开启发布确认)
 
 ### 单个确认发布
 
@@ -726,7 +726,7 @@ public class Producer2 {
 
 异步确认虽然编程逻辑比上两个要复杂，但是性价比最高，无论是可靠性还是效率都没得说， 他是利用回调函数来达到消息可靠性传递的，这个中间件也是通过函数回调来保证是否投递成功， 下面就让我们来详细讲解异步确认是怎么实现的。
 
-![image-20220510213022182](D:\WorkSpace\Note\Picture\RabbitMQ\异步确认原理.png)
+![image-20220510213022182](..\Picture\RabbitMQ\异步确认原理.png)
 
 * 如何处理异步未确定消息
 
@@ -809,7 +809,7 @@ RabbitMQ 消息传递模型的核心思想是: 生产者生产的消息从不会
 
 相反，生产者只能将消息发送到交换机(exchange)，交换机工作的内容非常简单，一方面它接收来 自生产者的消息，另一方面将它们推入队列。交换机必须确切知道如何处理收到的消息。是应该把这些消 息放到特定队列还是说把他们到许多队列中还是说应该丢弃它们。这就的由交换机的类型来决定。
 
-![image-20220510222923461](D:\WorkSpace\Note\Picture\RabbitMQ\Exchange.png)
+![image-20220510222923461](..\Picture\RabbitMQ\Exchange.png)
 
 ### Exchange的类型
 
@@ -822,7 +822,7 @@ RabbitMQ 消息传递模型的核心思想是: 生产者生产的消息从不会
 
 在本教程的前面部分我们对 exchange 一无所知，但仍然能够将消息发送到队列。之前能实现的 原因是因为我们使用的是默认交换，我们通过空字符串(“”)进行标识。
 
-![image-20220510223111236](D:\WorkSpace\Note\Picture\RabbitMQ\无名exchange)
+![image-20220510223111236](..\Picture\RabbitMQ\无名exchange)
 
 第一个参数是交换机的名称。空字符串表示默认或无名称交换机：消息能路由发送到队列中其实 是由 routingKey(bindingkey)绑定 key 指定的，如果它存在的话
 
@@ -836,13 +836,13 @@ RabbitMQ 消息传递模型的核心思想是: 生产者生产的消息从不会
 
 `String queueName = channel.queueDeclare().getQueue()`
 
-![image-20220510223246556](D:\WorkSpace\Note\Picture\RabbitMQ\临时队列.png)
+![image-20220510223246556](..\Picture\RabbitMQ\临时队列.png)
 
 ## 绑定
 
 什么是 bingding 呢，binding 其实是 exchange 和 queue 之间的桥梁，它告诉我们 exchange 和那个队 列进行了绑定关系。比如说下面这张图告诉我们的就是 X 与 Q1 和 Q2 进行了绑定
 
-![image-20220510223318423](D:\WorkSpace\Note\Picture\RabbitMQ\绑定.png)
+![image-20220510223318423](..\Picture\RabbitMQ\绑定.png)
 
 ## Fanout
 
@@ -930,7 +930,7 @@ public class Consumers2 {
 
 上一节中的我们的日志系统将所有消息广播给所有消费者，对此我们想做一些改变，例如我们希 望将日志消息写入磁盘的程序仅接收严重错误(errros)，而不存储哪些警告(warning)或信息(info)日志 消息避免浪费磁盘空间。Fanout 这种交换类型并不能给我们带来很大的灵活性-它只能进行无意识的 广播，在这里我们将使用 direct 这种类型来进行替换，这种类型的工作方式是，消息只去到它绑定的 routingKey 队列中去。
 
-![image-20220511125618513](D:\WorkSpace\Note\Picture\RabbitMQ\direct.png)
+![image-20220511125618513](..\Picture\RabbitMQ\direct.png)
 
 在上面这张图中，我们可以看到 X 绑定了两个队列，绑定类型是 direct。队列 Q1 绑定键为 orange， 队列 Q2 绑定键有两个:一个绑定键为 black，另一个绑定键为 green.
 
@@ -938,7 +938,7 @@ public class Consumers2 {
 
 ### 多从绑定
 
-![image-20220511125805098](D:\WorkSpace\Note\Picture\RabbitMQ\多从绑定.png)
+![image-20220511125805098](..\Picture\RabbitMQ\多从绑定.png)
 
 当然如果 exchange 的绑定类型是 direct，但是它绑定的多个队列的 key 如果都相同，在这种情 况下虽然绑定类型是 direct 但是它表现的就和 fanout 有点类似了，就跟广播差不多，如上图所示。
 
@@ -1352,7 +1352,7 @@ public class Consumers21 {
 
 这些场景都有一个特点，需要在某个事件发生之后或者之前的指定时间点完成某一项任务，如： 发生订单生成事件，在十分钟之后检查该订单支付状态，然后将未支付的订单进行关闭；看起来似乎 使用定时任务，一直轮询数据，每秒查一次，取出需要被处理的数据，然后处理不就完事了吗？如果 数据量比较少，确实可以这样做，比如：对于“如果账单一周内未支付则进行自动结算”这样的需求， 如果对于时间不是严格限制，而是宽松意义上的一周，那么每天晚上跑个定时任务检查一下所有未支 付的账单，确实也是一个可行的方案。但对于数据量比较大，并且时效性较强的场景，如：“订单十 分钟内未支付则关闭“，短期内未支付的订单数据可能会有很多，活动期间甚至会达到百万甚至千万 级别，对这么庞大的数据量仍旧使用轮询的方式显然是不可取的，很可能在一秒内无法完成所有订单 的检查，同时会给数据库带来很大压力，无法满足业务要求而且性能低下。
 
-![image-20220511234139846](D:\WorkSpace\Note\Picture\RabbitMQ\延迟队列使用场景.png)
+![image-20220511234139846](..\Picture\RabbitMQ\延迟队列使用场景.png)
 
 ## RabbitMQ 中的 TTL
 
@@ -1386,4 +1386,4 @@ return QueueBuilder.durable(QUEUE_A).withArguments(args).build();
 
 ## 队列TTL
 
-![image-20220511234733484](D:\WorkSpace\Note\Picture\RabbitMQ\队列TTL.png)
+![image-20220511234733484](..\Picture\RabbitMQ\队列TTL.png)
