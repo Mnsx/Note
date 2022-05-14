@@ -899,9 +899,16 @@ public class HeapSort {
             return ;
         }
 
+        // 方法1 稍慢
         for (int i = 0; i < arr.length; ++i) {
             heapInsert(arr, i);
         }
+        
+        // 方法2 稍快
+        for (int i = arr.length - 1; i >= 0; i--) {
+            heapify(arr, i, arr.length);
+        }
+        
         int heapSize = arr.length;
 
         swap(arr, 0, --heapSize);
@@ -944,3 +951,229 @@ public class HeapSort {
 }
 ```
 
+# 堆排序扩展题目
+
+已知一个几乎有序的数组，几乎有序是指，如果把数组排好顺序的话，每个元素移动的距离可以不超过k，并且k相对于数组来说比较小。请选择一个合适的排序算法针对这个数据进行排序。
+
+```java
+public class HeapSortPlus {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("请输入数组长度：");
+        int length = scanner.nextInt();
+
+        int[] arr = new int[length];
+        System.out.println("请输入数组中的内容：");
+        for (int i = 0; i < length; ++i) {
+            arr[i] = scanner.nextInt();
+        }
+        System.out.println("请输入指定数：");
+        int target = scanner.nextInt();
+
+        fun(arr, target);
+
+        for (int num : arr) {
+            System.out.print(num + " ");
+        }
+    }
+
+    public static void fun(int[] arr, int k) {
+        PriorityQueue<Integer> heap = new PriorityQueue<>();
+
+        int index = 0;
+
+        for (; index <= Math.min(arr.length, k); index++) {
+            heap.offer(arr[index]);
+        }
+
+        int i = 0;
+        for (; index < arr.length; ++i, index++) {
+            heap.add(arr[index]);
+            arr[i] = heap.poll();
+        }
+
+        while (!heap.isEmpty()) {
+            arr[i++] = heap.poll();
+        }
+    }
+}
+```
+
+# 比较器的使用
+
+1）比较器的实质就是重载比较运算符 
+
+2）比较器可以很好的应用在特殊标准的排序上 
+
+3）比较器可以很好的应用在根据特殊标准排序的结构上
+
+# 桶排序思想下的排序
+
+1）计数排序 
+
+```java
+public class CountSorting {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("请输入数组长度：");
+        int length = scanner.nextInt();
+
+        int[] arr = new int[length];
+        System.out.println("请输入数组中的内容：");
+        for (int i = 0; i < length; ++i) {
+            arr[i] = scanner.nextInt();
+        }
+
+        fun(arr);
+
+        for (int num : arr) {
+            System.out.print(num + " ");
+        }
+    }
+
+    public static void fun(int[] arr) {
+        if (arr == null || arr.length < 2) {
+            return;
+        }
+        int max = Integer.MIN_VALUE;
+        for (int i = 0; i < arr.length; i++) {
+            max = Math.max(max, arr[i]);
+        }
+        int[] bucket = new int[max + 1];
+        for (int i = 0; i < arr.length; i++) {
+            bucket[arr[i]]++;
+        }
+        int i = 0;
+        for (int j = 0; j < bucket.length; j++) {
+            while (bucket[j]-- > 0) {
+                arr[i++] = j;
+            }
+        }
+    }
+}
+```
+
+2）基数排序
+
+```java
+public class RadixSort {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("请输入数组长度：");
+        int length = scanner.nextInt();
+
+        int[] arr = new int[length];
+        System.out.println("请输入数组中的内容：");
+        for (int i = 0; i < length; ++i) {
+            arr[i] = scanner.nextInt();
+        }
+
+        fun(arr, 0, arr.length - 1, maxbits(arr));
+
+        for (int num : arr) {
+            System.out.print(num + " ");
+        }
+    }
+
+    public static int maxbits(int[] arr) {
+        int max = Integer.MIN_VALUE;
+        for (int i = 0; i < arr.length; i++) {
+            max = Math.max(max, arr[i]);
+        }
+        int res = 0;
+        while (max != 0) {
+            res++;
+            max /= 10;
+        }
+        return res;
+    }
+
+    public static void fun(int[] arr, int begin, int end, int digit) {
+        final int radix = 10;
+        int i = 0, j = 0;
+
+        int[] bucket = new int[end - begin + 1];
+        for (int d = 1; d <= digit; d++) {
+            int[] count = new int[radix];
+            for (i = begin; i <= end; i++) {
+                j = getDigit(arr[i], d);
+                count[j]++;
+            }
+            for (i = 1; i < radix; i++) {
+                count[i] = count[i] + count[i - 1];
+            }
+            for (i = end; i >= begin; i--) {
+                j = getDigit(arr[i], d);
+                bucket[count[j] - 1] = arr[i];
+                count[j]--;
+            }
+            for (i = begin, j = 0; i <= end; i++, j++) {
+                arr[i] = bucket[j];
+            }
+        }
+    }
+
+    public static int getDigit(int x, int d) {
+        return ((x / ((int) Math.pow(10, d - 1))) % 10);
+    }
+}
+```
+
+分析： 
+
+1)桶排序思想下的排序都是不基于比较的排序 
+
+2)时间复杂度为O(N)，额外空间负载度O(M) 
+
+3)应用范围有限，需要样本的数据状况满足桶的划分
+
+# 排序算法的稳定性及其汇总
+
+同样值的个体之间，如果不因为排序而改变相对次序，就是这个排序是有稳定性的；否则就没有。
+
+不具备稳定性的排序：
+
+选择排序、快速排序、堆排序
+
+具备稳定性的排序：
+
+冒泡排序、插入排序、归并排序、一切桶排序思想下的排序
+
+目前没有找到时间复杂度O(N*logN)，额外空间复杂度O(1)，又稳定的排序。
+
+# 常见的坑
+
+1，归并排序的额外空间复杂度可以变成O(1)，但是非常难，不需要掌握，有兴趣可以搜“归并排序 内部缓存法” 
+
+2， “原地归并排序”的帖子都是垃圾，会让归并排序的时间复杂度变成O(N^2)
+
+3，快速排序可以做到稳定性问题，但是非常难，不需要掌握，可以搜“01stable sort” 
+
+4，所有的改进都不重要，因为目前没有找到时间复杂度O(N*logN)，额外空间复杂度O(1)，又稳定的排序。 
+
+5，有一道题目，是奇数放在数组左边，偶数放在数组右边，还要求原始的相对次序不变，碰到这个问题，可以怼面试官。
+
+# 工程上对排序的改进
+
+1）充分利用O(N*logN)和O(N^2)排序各自的优势 
+
+2）稳定性的考虑
+
+# 哈希表的简单介绍
+
+1）哈希表在使用层面上可以理解为一种集合结构 
+
+2）如果只有key，没有伴随数据value，可以使用HashSet结构(C++中叫UnOrderedSet)
+
+3）如果既有key，又有伴随数据value，可以使用HashMap结构(C++中叫UnOrderedMap)
+
+4）有无伴随数据，是HashMap和HashSet唯一的区别，底层的实际结构是一回事
+
+5）使用哈希表增(put)、删(remove)、改(put)和查(get)的操作，可以认为时间复杂度为O(1)，但是常数时间比较大 
+
+6）放入哈希表的东西，如果是基础类型，内部按值传递，内存占用就是这个东西的大小
+
+7）放入哈希表的东西，如果不是基础类型，内部按引用传递，内存占用是这个东西内存地址的大小

@@ -248,5 +248,31 @@
   } 
   ```
 
-  
 
+## 虚拟主机
+
+原本一台服务器只能对应一个站点，通过虚拟主机技术可以虚拟化成多个站点同时对外提供服务
+
+### servername匹配规则
+
+我们需要注意的是servername匹配分先后顺序，写在前面的匹配上就不会继续往下匹配了。
+
+* 完整匹配
+
+  我们可以在同一servername中匹配多个域名
+
+  `server_name vod.mmban.com www1.mmban.com;`
+
+* 通配符匹配
+
+  `server_name *.mmban.com`
+
+* 通配符结束匹配
+
+  `server_name vod.*;`
+
+* 正则匹配
+
+  `server_name ~^[0-9]+\.mmban\.com$;`
+
+## 反向代理

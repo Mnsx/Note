@@ -1387,3 +1387,478 @@ return QueueBuilder.durable(QUEUE_A).withArguments(args).build();
 ## 队列TTL
 
 ![image-20220511234733484](..\Picture\RabbitMQ\队列TTL.png)
+
+```java
+@Configuration
+public class TtlQueueConfig {
+    public static final String X_EXCHANGE = "X";
+    public static final String QUEUE_A = "QA";
+    public static final String QUEUE_B = "QB";
+
+    public static final String DEAD_LETTER_EXCHANGE = "Y";
+    public static final String DEAD_LETTER_QUEUE = "QD";
+
+    @Bean("xExchange")
+    public DirectExchange xExchange() {
+        return new DirectExchange(X_EXCHANGE);
+    }
+
+    @Bean("yExchange")
+    public DirectExchange yExchange() {
+        return new DirectExchange(DEAD_LETTER_EXCHANGE);
+    }
+
+    @Bean("queueA")
+    public Queue queueA() {
+        Map<String, Object> args = new HashMap<>(3);
+        args.put("x-dead-letter-exchange", DEAD_LETTER_EXCHANGE);
+        args.put("x-dead-letter-routing-key", "YD");
+        args.put("x-message-ttl", 10000);
+        return QueueBuilder.durable(QUEUE_A).withArguments(args).build();
+    }
+
+    @Bean
+    public Binding queueABindingX(@Qualifier("queueA") Queue queueA, @Qualifier("xExchange") DirectExchange xExchange) {
+        return BindingBuilder.bind(queueA).to(xExchange).with("XA");
+    }
+
+    @Bean("queueB")
+    public Queue queueB() {
+        Map<String, Object> args = new HashMap<>(3);
+        args.put("x-dead-letter-exchange", DEAD_LETTER_EXCHANGE);
+        args.put("x-dead-letter-routing-key", "YD");
+        args.put("x-message-ttl", 40000);
+        return QueueBuilder.durable(QUEUE_B).withArguments(args).build();
+    }
+
+    @Bean
+    public Binding queueBBindingX(@Qualifier("queueB") Queue queueB, @Qualifier("xExchange") DirectExchange xExchange) {
+        return BindingBuilder.bind(queueB).to(xExchange).with("XB");
+    }
+
+    @Bean("queueD")
+    public Queue queueD() {
+        return new Queue(DEAD_LETTER_QUEUE);
+    }
+
+    @Bean
+    public Binding deadLetterBindingQAD(@Qualifier("queueD") Queue queueD, @Qualifier("yExchange") DirectExchange yExchange) {
+        return BindingBuilder.bind(queueD).to(yExchange).with("YD");
+    }
+}
+```
+
+```java
+@Slf4j
+@RestController
+@RequestMapping("/ttl")
+public class SendMsgController {
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @GetMapping("/sendMsg/{message}")
+    public void sendMsg(@PathVariable String message) {
+        log.info("当前时间：{}，发送一条消息给两个ttl队列：{}", new Date().toString(), message);
+        rabbitTemplate.convertAndSend("X", "XA", "消息来自ttl为10s的队列");
+        rabbitTemplate.convertAndSend("X", "XB", "消息来自ttl为40s的队列");
+    }
+}
+```
+
+```java
+@Slf4j
+@Component
+public class DeadLetterQueueConsumer {
+    @RabbitListener(queues = "QD")
+    public void receiveD(Message message, Channel channel) throws Exception {
+        String msg = new String(message.getBody());
+        log.info("当前时间：{}，收到死信队列信息{}：", new Date().toString(), msg);
+    }
+}
+```
+
+第一条消息在 10S 后变成了死信消息，然后被消费者消费掉，第二条消息在 40S 之后变成了死信消息， 然后被消费掉，这样一个延时队列就打造完成了。 
+
+不过，如果这样使用的话，岂不是每增加一个新的时间需求，就要新增一个队列，这里只有 10S 和 40S 两个时间选项，如果需要一个小时后处理，那么就需要增加 TTL 为一个小时的队列，如果是预定会议室然 后提前通知这样的场景，岂不是要增加无数个队列才能满足需求？
+
+## 延迟队列优化
+
+给消息添加ttl，来实现能够根据生产者确定ttl的延迟队列
+
+![image-20220512094946214](..\Picture\RabbitMQ\延迟队列优化.png)
+
+```java
+@Bean("queueC")
+public Queue queueC() {
+    Map<String, Object> args = new HashMap<>(3);
+    args.put("x-dead-letter-exchange", DEAD_LETTER_EXCHANGE);
+    args.put("x-dead-letter-routing-key", "YD");
+    return QueueBuilder.durable(QUEUE_C).withArguments(args).build();
+}
+
+@Bean
+public Binding queueCBindingX(@Qualifier("xExchange") DirectExchange xExchange, @Qualifier("queueC") Queue queueC) {
+    return BindingBuilder.bind(queueC).to(xExchange).with("XC");
+}
+```
+
+```java
+@GetMapping("/sendPlus/{message}/{time}")
+public void sendPlus(@PathVariable("message") String message, @PathVariable("time") String time) {
+    rabbitTemplate.convertAndSend("X", "XA", message, msg -> {
+        msg.getMessageProperties().setExpiration(time);
+        return msg;
+    });
+    log.info("当前时间：{}，发送一条延迟为{}ms的消息给两个ttl队列：{}", new Date().toString(), time, message);
+}
+```
+
+看起来似乎没什么问题，但是在最开始的时候，就介绍过如果使用在消息属性上设置 TTL 的方式，消 息可能并不会按时“死亡“，因为 RabbitMQ 只会检查第一个消息是否过期，如果过期则丢到死信队列， 如果第一个消息的延时时长很长，而第二个消息的延时时长很短，第二个消息并不会优先得到执行。
+
+## RabbitMQ插件实现延迟队列
+
+上文中提到的问题，确实是一个问题，如果不能实现在消息粒度上的 TTL，并使其在设置的 TTL 时间 及时死亡，就无法设计成一个通用的延时队列。那如何解决呢，接下来我们就去解决该问题。
+
+### 安装延时队列插件
+
+在官网上下载 https://www.rabbitmq.com/community-plugins.html，下载 rabbitmq_delayed_message_exchange 插件，然后解压放置到 RabbitMQ 的插件目录。 
+
+进入 RabbitMQ 的安装目录下的 plgins 目录，执行下面命令让该插件生效，然后重启 RabbitMQ
+
+ /usr/lib/rabbitmq/lib/rabbitmq_server-3.8.8/plugins 
+
+`rabbitmq-plugins enable rabbitmq_delayed_message_exchange`
+
+![image-20220512105910757](..\Picture\RabbitMQ\延时队列插件安装成功.png)
+
+![image-20220512110023902](..\Picture\RabbitMQ\延时队列演示原理图.png)
+
+```java
+@Configuration
+public class DelayedQueueConfig {
+    public static final String DELAYED_QUEUE_NAME = "delayed.queue";
+    public static final String DELAYED_EXCHANGE_NAME = "delayed.exchange";
+    public static final String DELAYED_ROUTING_KEY  = "delayedL.routingKey";
+
+    @Bean
+    public CustomExchange delayedExchange() {
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-delayed-type", "direct");
+        return new CustomExchange(DELAYED_EXCHANGE_NAME, "x-delayed-message", true, false, args);
+    }
+
+    @Bean
+    public Queue delayedQueue() {
+        return new Queue(DELAYED_QUEUE_NAME);
+    }
+
+    @Bean
+    public Binding delayedQueueBindingDelayedExchange(@Qualifier("delayedExchange") CustomExchange exchange, @Qualifier("delayedQueue") Queue queue) {
+        return BindingBuilder.bind(queue).to(exchange).with(DELAYED_ROUTING_KEY).noargs();
+    }
+}
+```
+
+```java
+@GetMapping("/sendDelayMsg/{message}/{delayTime}")
+public void sendMsg(@PathVariable("message") String message, @PathVariable("delayTime") Integer delayTime) {
+    rabbitTemplate.convertAndSend(DelayedQueueConfig.DELAYED_EXCHANGE_NAME, DelayedQueueConfig.DELAYED_ROUTING_KEY, message, correlationData -> {
+        correlationData.getMessageProperties().setDelay(delayTime);
+        return correlationData;
+    });
+}
+```
+
+```java
+@RabbitListener(queues = DelayedQueueConfig.DELAYED_QUEUE_NAME)
+public void receiveDelayedQueue(Message message) {
+    String msg = new String(message.getBody());
+    log.info("当前时间：{}，收到延时队列的消息：{}", new Date(), msg);
+}
+```
+
+# 发布确认高级
+
+在生产环境中由于一些不明原因，导致 rabbitmq 重启，在 RabbitMQ 重启期间生产者消息投递失败， 导致消息丢失，需要手动处理和恢复。于是，我们开始思考，如何才能进行 RabbitMQ 的消息可靠投递呢？ 特别是在这样比较极端的情况，RabbitMQ 集群不可用的时候，无法投递的消息该如何处理呢:
+
+## 发布确认SpringBoot
+
+![image-20220512184647601](..\Picture\RabbitMQ\确认机制方案.png)
+
+![image-20220512184717407](..\Picture\RabbitMQ\确认发布架构图.png)
+
+## 配置文件
+
+在配置文件中需要添加
+
+`spring.rabbitmq.publisher-confirm-type=correlated`
+
+* NONE
+
+  禁用发布确认模式，是默认值
+
+* CORRELATED
+
+  发布消息成功到交换机后会出发回调方法
+
+* SIMPLE
+
+  经测试有两种效果，其一效果和 CORRELATED 值一样会触发回调方法，
+
+  其二在发布消息成功后使用 rabbitTemplate 调用 waitForConfirms 或 waitForConfirmsOrDie 方法 等待 broker 节点返回发送结果，根据返回结果来判定下一步的逻辑，要注意的点是 waitForConfirmsOrDie 方法如果返回 false 则会关闭 channel，则接下来无法发送消息到 broker
+
+```java
+@Configuration
+public class ConfirmConfig {
+    public static final String CONFIRM_EXCHANGE_NAME = "confirm.exchange";
+    public static final String CONFIRM_QUEUE_NAME = "confirm.queue";
+
+    @Bean("confirmExchange")
+    public DirectExchange confirmExchange() {
+        return new DirectExchange(CONFIRM_EXCHANGE_NAME);
+    }
+
+    @Bean("confirmQueue")
+    public Queue confirmQueue() {
+        return QueueBuilder.durable(CONFIRM_QUEUE_NAME).build();
+    }
+
+    @Bean
+    public Binding queueBinding(@Qualifier("confirmExchange") DirectExchange confirmExchange, @Qualifier("confirmQueue") Queue confirmQueue) {
+        return BindingBuilder.bind(confirmQueue).to(confirmExchange).with("key1");
+    }
+}
+```
+
+```java
+@RestController
+@Slf4j
+@RequestMapping("/confirm")
+public class Producer {
+    public static final String CONFIRM_EXCHANGE_NAME = "confirm.exchange";
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private MyCallBack myCallBack;
+
+    @PostConstruct
+    public void init() {
+        rabbitTemplate.setConfirmCallback((myCallBack));
+    }
+
+    @GetMapping("/sendMessage/{message}")
+    public void sendMessage(@PathVariable String message) {
+        CorrelationData correlationData1 = new CorrelationData("1");
+        String routingKey = "key1";
+
+        rabbitTemplate.convertAndSend(CONFIRM_EXCHANGE_NAME, routingKey, message + routingKey, correlationData1);
+
+        log.info("发送消息内容：{}，routingKey为：{}", message, routingKey);
+
+        CorrelationData correlationData2 = new CorrelationData("2");
+        routingKey = "key2";
+
+        rabbitTemplate.convertAndSend(CONFIRM_EXCHANGE_NAME + 123, routingKey, message + routingKey, correlationData2);
+
+        log.info("发送消息内容：{}，routingKey为：{}", message, routingKey);
+    }
+}
+```
+
+```java
+@Slf4j
+@Component
+public class MyCallBack implements RabbitTemplate.ConfirmCallback {
+
+    @Override
+    public void confirm(CorrelationData correlationData, boolean b, String s) {
+        String id = correlationData != null ? correlationData.getId() : "";
+        if (b) {
+            log.info("交换机已经收到id为{}的消息", id);
+        } else {
+            log.info("交换机未收到id为{}的消息，原因是{}", id, s);
+        }
+    }
+}
+```
+
+```java
+@Slf4j
+@Component
+public class confirmConsumer {
+    public static final String CONFIRM_QUEUE_NAME = "confirm.queue";
+
+    @RabbitListener(queues = CONFIRM_QUEUE_NAME)
+    public void receiveMsg(Message message) {
+        String msg = new String(message.getBody());
+        log.info("接收到队列confirm.queue消息：{}", msg);
+    }
+}
+```
+
+可以看到，发送了两条消息，第一条消息的 RoutingKey 为 "key1"，第二条消息的 RoutingKey 为 "key2"，两条消息都成功被交换机接收，也收到了交换机的确认回调，但消费者只收到了一条消息，因为 第二条消息的 RoutingKey 与队列的 BindingKey 不一致，也没有其它队列能接收这个消息，所有第二条 消息被直接丢弃了。
+
+## 回退消息
+
+### Mandatory参数
+
+在仅开启了生产者确认机制的情况下，交换机接收到消息后，会直接给消息生产者发送确认消息，如 果发现该消息不可路由，那么消息会被直接丢弃，此时生产者是不知道消息被丢弃这个事件的。那么如何 让无法被路由的消息帮我想办法处理一下？最起码通知我一声，我好自己处理啊。通过设置 mandatory 参 数可以在当消息传递过程中不可达目的地时将消息返回给生产者。
+
+```java
+@PostConstruct
+public void init() {
+    rabbitTemplate.setConfirmCallback((myCallBack));
+    rabbitTemplate.setReturnsCallback(returnedMessage -> {
+        log.info("消 息 {}, 被交换机 {} 退回，退回原因 :{}, 路 由 key:{}", returnedMessage.getMessage(), returnedMessage.getExchange(), returnedMessage.getReplyText(), returnedMessage.getRoutingKey());
+    });
+}
+```
+
+`publisher-returns: true`
+
+## 备份交换机
+
+有了 mandatory 参数和回退消息，我们获得了对无法投递消息的感知能力，有机会在生产者的消息 无法被投递时发现并处理。但有时候，我们并不知道该如何处理这些无法路由的消息，最多打个日志，然 后触发报警，再来手动处理。而通过日志来处理这些无法路由的消息是很不优雅的做法，特别是当生产者 所在的服务有多台机器的时候，手动复制日志会更加麻烦而且容易出错。而且设置 mandatory 参数会增 加生产者的复杂性，需要添加处理这些被退回的消息的逻辑。如果既不想丢失消息，又不想增加生产者的 复杂性，该怎么做呢？前面在设置死信队列的文章中，我们提到，可以为队列设置死信交换机来存储那些 处理失败的消息，可是这些不可路由消息根本没有机会进入到队列，因此无法使用死信队列来保存消息。 在 RabbitMQ 中，有一种备份交换机的机制存在，可以很好的应对这个问题。什么是备份交换机呢？备份 交换机可以理解为 RabbitMQ 中交换机的“备胎”，当我们为某一个交换机声明一个对应的备份交换机时， 就是为它创建一个备胎，当交换机接收到一条不可路由消息时，将会把这条消息转发到备份交换机中，由 备份交换机来进行转发和处理，通常备份交换机的类型为 Fanout ，这样就能把所有消息都投递到与其绑 定的队列中，然后我们在备份交换机下绑定一个队列，这样所有那些原交换机无法被路由的消息，就会都 进入这个队列了。当然，我们还可以建立一个报警队列，用独立的消费者来进行监测和报警。
+
+![image-20220512195115822](..\Picture\RabbitMQ\备份交换机架构图.png)
+
+**重新启动项目的时候需要把原来的 confirm.exchange 删除因为我们修改了其绑定属性**
+
+```java
+@Configuration
+public class ConfirmConfig {
+    public static final String BACKUP_EXCHANGE_NAME = "backup.exchange";
+    public static final String BACKUP_QUEUE_NAME = "backup.queue";
+    public static final String WARNING_QUEUE_NAME = "warning.queue";
+    public static final String CONFIRM_EXCHANGE_NAME = "confirm.exchange";
+    public static final String CONFIRM_QUEUE_NAME = "confirm.queue";
+
+    @Bean("confirmQueue")
+    public Queue confirmQueue() {
+        return QueueBuilder.durable(CONFIRM_QUEUE_NAME).build();
+    }
+
+    @Bean("backupExchange")
+    public FanoutExchange backupExchange() {
+        return ExchangeBuilder.fanoutExchange(BACKUP_EXCHANGE_NAME).build();
+    }
+
+    @Bean
+    public Binding queueBinding(@Qualifier("confirmExchange") DirectExchange confirmExchange, @Qualifier("confirmQueue") Queue confirmQueue) {
+        return BindingBuilder.bind(confirmQueue).to(confirmExchange).with("key1");
+    }
+
+    @Bean("confirmExchange")
+    public DirectExchange confirmExchange() {
+        ExchangeBuilder exchangeBuilder =
+                ExchangeBuilder.directExchange(CONFIRM_EXCHANGE_NAME)
+                        .durable(true)
+                        .withArgument("alternate-exchange", BACKUP_EXCHANGE_NAME);
+        return (DirectExchange)exchangeBuilder.build();
+    }
+
+    @Bean("warningQueue")
+    public Queue warningQueue() {
+        return QueueBuilder.durable(WARNING_QUEUE_NAME).build();
+    }
+
+    @Bean
+    public Binding warningBinding(@Qualifier("warningQueue") Queue queue,
+                                  @Qualifier("backupExchange") FanoutExchange
+                                          backupExchange){
+        return BindingBuilder.bind(queue).to(backupExchange);
+    }
+
+    @Bean("backQueue")
+    public Queue backQueue(){
+        return QueueBuilder.durable(BACKUP_QUEUE_NAME).build();
+    }
+
+    @Bean
+    public Binding backupBinding(@Qualifier("backQueue") Queue queue,
+                                 @Qualifier("backupExchange") FanoutExchange backupExchange){
+        return BindingBuilder.bind(queue).to(backupExchange);
+    }
+}
+```
+
+```java
+@Component
+@Slf4j
+public class WarningConsumer {
+    public static final String WARNING_QUEUE_NAME = "warning.queue";
+    @RabbitListener(queues = WARNING_QUEUE_NAME)
+    public void receiveWarningMsg(Message message) {
+        String msg = new String(message.getBody());
+        log.error("报警发现不可路由消息：{}", msg);
+    }
+}
+```
+
+mandatory 参数与备份交换机可以一起使用的时候，如果两者同时开启，消息究竟何去何从？谁优先 级高，**经过上面结果显示答案是备份交换机优先级高**。
+
+# 其他问题
+
+## 幂等性
+
+### 概念
+
+用户对于同一操作发起的一次请求或者多次请求的结果是一致的，不会因为多次点击而产生了副作用。 举个最简单的例子，那就是支付，用户购买商品后支付，支付扣款成功，但是返回结果的时候网络异常， 此时钱已经扣了，用户再次点击按钮，此时会进行第二次扣款，返回结果成功，用户查询余额发现多扣钱 了，流水记录也变成了两条。在以前的单应用系统中，我们只需要把数据操作放入事务中即可，发生错误 立即回滚，但是再响应客户端的时候也有可能出现网络中断或者异常等等
+
+### 消息重复消费
+
+消费者在消费 MQ 中的消息时，MQ 已把消息发送给消费者，消费者在给 MQ 返回 ack 时网络中断， 故 MQ 未收到确认信息，该条消息会重新发给其他的消费者，或者在网络重连后再次发送给该消费者，但 实际上该消费者已成功消费了该条消息，造成消费者消费了重复的消息。
+
+### 解决思路
+
+MQ 消费者的幂等性的解决一般使用全局 ID 或者写个唯一标识比如时间戳 或者 UUID 或者订单消费 者消费 MQ 中的消息也可利用 MQ 的该 id 来判断，或者可按自己的规则生成一个全局唯一 id，每次消费消 息时用该 id 先判断该消息是否已消费过。
+
+### 消费端的幂等性保障
+
+在海量订单生成的业务高峰期，生产端有可能就会重复发生了消息，这时候消费端就要实现幂等性， 这就意味着我们的消息永远不会被消费多次，即使我们收到了一样的消息。业界主流的幂等性有两种操作:a. 唯一 ID+指纹码机制,利用数据库主键去重, b.利用 redis 的原子性去实现
+
+### 唯一 ID+指纹码机制
+
+指纹码:我们的一些规则或者时间戳加别的服务给到的唯一信息码,它并不一定是我们系统生成的，基 本都是由我们的业务规则拼接而来，但是一定要保证唯一性，然后就利用查询语句进行判断这个 id 是否存 在数据库中,优势就是实现简单就一个拼接，然后查询判断是否重复；劣势就是在高并发时，如果是单个数 据库就会有写入性能瓶颈当然也可以采用分库分表提升性能，但也不是我们最推荐的方式。
+
+### Redis原子性
+
+利用 redis 执行 setnx 命令，天然具有幂等性。从而实现不重复消费
+
+## 优先级队列
+
+### 使用场景 
+
+在我们系统中有一个订单催付的场景，我们的客户在天猫下的订单,淘宝会及时将订单推送给我们，如 果在用户设定的时间内未付款那么就会给用户推送一条短信提醒，很简单的一个功能对吧，但是，tmall 商家对我们来说，肯定是要分大客户和小客户的对吧，比如像苹果，小米这样大商家一年起码能给我们创 造很大的利润，所以理应当然，他们的订单必须得到优先处理，而曾经我们的后端系统是使用 redis 来存 放的定时轮询，大家都知道 redis 只能用 List 做一个简简单单的消息队列，并不能实现一个优先级的场景， 所以订单量大了后采用 RabbitMQ 进行改造和优化,如果发现是大客户的订单给一个相对比较高的优先级， 否则就是默认优先级。
+
+1. 队列中添加参数`x-max-priority = 10`
+2. 生产者中添加消息优先级`priority(5)`
+
+**要让队列实现优先级需要做的事情有如下事情:队列需要设置为优先级队列，消息需要设置消息的优先 级，消费者需要等待消息已经发送到队列中才去消费因为，这样才有机会对消息进行排序**
+
+## 惰性队列
+
+### 使用场景
+
+RabbitMQ 从 3.6.0 版本开始引入了惰性队列的概念。惰性队列会尽可能的将消息存入磁盘中，而在消 费者消费到相应的消息时才会被加载到内存中，它的一个重要的设计目标是能够支持更长的队列，即支持 更多的消息存储。当消费者由于各种各样的原因(比如消费者下线、宕机亦或者是由于维护而关闭等)而致 使长时间内不能消费消息造成堆积时，惰性队列就很有必要了。
+
+默认情况下，当生产者将消息发送到 RabbitMQ 的时候，队列中的消息会尽可能的存储在内存之中， 这样可以更加快速的将消息发送给消费者。即使是持久化的消息，在被写入磁盘的同时也会在内存中驻留 一份备份。当 RabbitMQ 需要释放内存的时候，会将内存中的消息换页至磁盘中，这个操作会耗费较长的 时间，也会阻塞队列的操作，进而无法接收新的消息。虽然 RabbitMQ 的开发者们一直在升级相关的算法， 但是效果始终不太理想，尤其是在消息量特别大的时候。
+
+### 两种模式
+
+队列具备两种模式：default 和 lazy。默认的为 default 模式，在 3.6.0 之前的版本无需做任何变更。lazy 模式即为惰性队列的模式，可以通过调用 channel.queueDeclare 方法的时候在参数中设置，也可以通过 Policy 的方式设置，如果一个队列同时使用这两种方式设置的话，那么 Policy 的方式具备更高的优先级。 如果要通过声明的方式改变已有队列的模式的话，那么只能先删除队列，然后再重新声明一个新的。
+
+**在队列声明的时候可以通过“x-queue-mode”参数来设置队列的模式，取值为“default”和“lazy”。下面示 例中演示了一个惰性队列的声明细节：**
+
+```java
+Map<String, Object> args = new HashMap<String, Object>();
+args.put("x-queue-mode", "lazy");
+channel.queueDeclare("myqueue", false, false, false, args);
+```
+
+# RabbitMQ集群
+
+https://www.bilibili.com/video/BV1cb4y1o7zz?p=83
+
+参考文档教程进行
