@@ -480,3 +480,44 @@ public class Main {
   在其中抛出异常的方法。如果未在子类中实现方法，程序将会在运行时出错
 
   不过需要另外编写FactoryMethodRuntimeException异常类
+
+## Singleton模式
+
+### 案例参考
+
+单例类
+
+```java
+public class Singleton {
+    private static Singleton singleton = new Singleton();
+
+    private Singleton() {
+        System.out.println("创建了一个实例");
+    }
+
+    public static Singleton getInstance() {
+        return singleton;
+    }
+}
+```
+
+Main类
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Start .");
+        Singleton obj1 = Singleton.getInstance();
+        Singleton obj2 = Singleton.getInstance();
+        if (obj1 == obj2) {
+            System.out.println("obj1与obj2是相同的实例");
+        } else {
+            System.out.println("obj1与obj2是不同的实例");
+        }
+    }
+}
+```
+
+### 唯一实例的生成时机
+
+程序运行后，在第一次调用getInstance方法时，Singleton类会被初始化。也就是在这个时候，static字段singleton被初始化，生成了唯一的一个实例
