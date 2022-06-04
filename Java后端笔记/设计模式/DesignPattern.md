@@ -521,3 +521,139 @@ public class Main {
 ### 唯一实例的生成时机
 
 程序运行后，在第一次调用getInstance方法时，Singleton类会被初始化。也就是在这个时候，static字段singleton被初始化，生成了唯一的一个实例
+
+## Prototype模式
+
+### 案例参考
+
+实现复制功能的类
+
+```java
+public interface Product extends Cloneable {
+    void use(String s);
+
+    Product createClone();
+}
+```
+
+管理复制类的类
+
+```java
+public class Manager {
+    private HashMap showcase = new HashMap();
+
+    public void register(String name, Product proto) {
+        showcase.put(name, proto);
+    }
+
+    public Product create(String protoName) {
+        Product p = (Product) showcase.get(protoName);
+        return p.createClone();
+    }
+}
+```
+
+两个实例类
+
+```java
+public class MessageBox implements Product {
+    private char decoChar;
+
+    public MessageBox(char decoChar) {
+        this.decoChar = decoChar;
+    }
+
+    @Override
+    public void use(String s) {
+        int length = s.getBytes(StandardCharsets.UTF_8).length;
+        for (int i = 0; i < length + 4; ++i) {
+            System.out.print(decoChar);
+        }
+        System.out.println("");
+        System.out.println(decoChar + " " + s + " " + decoChar);
+        for (int i = 0; i < length + 4; ++i) {
+            System.out.print(decoChar);
+        }
+        System.out.println();
+    }
+
+    @Override
+    public Product createClone() {
+        Product p = null;
+        try {
+            p = (Product) clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return p;
+    }
+}
+```
+
+```java
+public class UnderlinePen implements Product {
+    private char decoChar;
+
+    public UnderlinePen(char decoChar) {
+        this.decoChar = decoChar;
+    }
+
+    @Override
+    public void use(String s) {
+        int length = s.getBytes(StandardCharsets.UTF_8).length;
+        System.out.println("\"" + s + "\"");
+        System.out.print(" ");
+        for (int i = 0; i < length + 4; ++i) {
+            System.out.print(decoChar);
+        }
+        System.out.println();
+    }
+
+    @Override
+    public Product createClone() {
+        Product p = null;
+        try {
+            p = (Product) clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return p;
+    }
+}
+```
+
+Main类
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Manager manager = new Manager();
+        UnderlinePen u = new UnderlinePen('~');
+        MessageBox m1 = new MessageBox('&');
+        MessageBox m2 = new MessageBox('*');
+        manager.register("u", u);
+        manager.register("m1", m1);
+        manager.register("m2", m2);
+
+        Product p1 = manager.create("u");
+        p1.use("Hello world!");
+        Product p2 = manager.create("m1");
+        p2.use("Hello world!");
+        Product p3 = manager.create("m2");
+        p3.use("Hello world!");
+    }
+}
+```
+
+### 对象种类繁多，无法将他们整合到一个类中
+
+如果将每种样式都编写为一个类，类的数量将会非常大，源程序的管理也会百年的非常困难。
+
+### 难以根据类生成实例时
+
+当通过一些操作将会生成一系列相似的类，生成数量非常庞大，这个时候，与根据类来生成实例相比，根据实例来生成实例要简单的多
+
+### 想解耦框架和生成的实例时
+
+在编写框架时，通过这种方式将不会再框架代码中出现，实例类，这种方式具有更好的通用性，而且将框架从类名的舒服中解脱出来了
+
