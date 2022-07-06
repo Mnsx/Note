@@ -14,7 +14,8 @@ shiro、SpringSecurity：很像除了类不同，名字不同
 
 # SpringSecurity简介
 
-Spring Security是针对Spring项目的安全框架，也是SpringBoot底层安全模块的默认技术选型，他可以实现强大的web安全控制，对于安全控制，我们仅需要引入spring-boot-starter-security模块，进行少量的配置，即可实现强大的安全管理
+Spring
+Security是针对Spring项目的安全框架，也是SpringBoot底层安全模块的默认技术选型，他可以实现强大的web安全控制，对于安全控制，我们仅需要引入spring-boot-starter-security模块，进行少量的配置，即可实现强大的安全管理
 
 记住几个类——
 

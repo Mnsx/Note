@@ -10,19 +10,19 @@
 ## 和其他持久化层技术对比
 
 * JDBC
-  * SQL夹杂在java代码中耦合度高，导致硬编码内伤
-  * 维护不易且实际开发需求中SQL有变化，频繁修改的情况多见
-  * 代码冗长，开发效率低
+    * SQL夹杂在java代码中耦合度高，导致硬编码内伤
+    * 维护不易且实际开发需求中SQL有变化，频繁修改的情况多见
+    * 代码冗长，开发效率低
 * Hibernate和JPA
-  * 操作简便，开发效率高
-  * 程序中的长难复杂SQL需要绕过框架
-  * 内部自动生产的SQL，不容易做特殊优化
-  * 基于全映射的全自动框架，大量字段的POJO进行部分映射时比较困难
-  * 反射操作太多，导致数据库性能下降
+    * 操作简便，开发效率高
+    * 程序中的长难复杂SQL需要绕过框架
+    * 内部自动生产的SQL，不容易做特殊优化
+    * 基于全映射的全自动框架，大量字段的POJO进行部分映射时比较困难
+    * 反射操作太多，导致数据库性能下降
 * MyBatis
-  * 轻量级，性能出色
-  * SQL和java编码分开，功能边界清晰，java代码专注业务、SQL语句专注数据
-  * 开发效率稍逊于Hibernamte，但是完全能够接受
+    * 轻量级，性能出色
+    * SQL和java编码分开，功能边界清晰，java代码专注业务、SQL语句专注数据
+    * 开发效率稍逊于Hibernamte，但是完全能够接受
 
 # 搭建MyBatis
 
@@ -154,29 +154,29 @@ properties——》setting——》typeAliases——》typeHandlers——》obje
 
 environments：配置多个连接数据库的环境
 
-​	default：设置默认使用的环境的id
+​ default：设置默认使用的环境的id
 
 environment：配置莫格具体的环境
 
-​	id：表示连接数据库的环境的唯一标识，不能重复
+​ id：表示连接数据库的环境的唯一标识，不能重复
 
 transactionManager：设置事务管理方式
 
-​	type：jdbc|managed
+​ type：jdbc|managed
 
-​		jdbc：表示当前环境中，操作SQL时使用的时jdbc中的原生事务管理方式，事务的提交或者回滚需要手动处理
+​ jdbc：表示当前环境中，操作SQL时使用的时jdbc中的原生事务管理方式，事务的提交或者回滚需要手动处理
 
-​		managed：被管理
+​ managed：被管理
 
 datasource：配置数据源
 
-​	type：设置数据源的类型（POOLED|UNPOOLED|JNDI）
+​ type：设置数据源的类型（POOLED|UNPOOLED|JNDI）
 
-​	POOLED：表示使用数据库连接池，缓存数据库连接
+​ POOLED：表示使用数据库连接池，缓存数据库连接
 
-​	UNPOOLED：不使用数据库连接池
+​ UNPOOLED：不使用数据库连接池
 
-​	JNDI：表示使用上下文中的数据源
+​ JNDI：表示使用上下文中的数据源
 
 ## properties属性
 
@@ -190,11 +190,11 @@ datasource：配置数据源
 
 typeAlias：设置某个类型的别名
 
-​	type：设置需要设置别名的类型
+​ type：设置需要设置别名的类型
 
-​	alias：设置某个类型的别名
+​ alias：设置某个类型的别名
 
-​		不设置alias属性那就表示为该类的类名且不区分大小写
+​ 不设置alias属性那就表示为该类的类名且不区分大小写
 
 package：以包为单位，将包下所有的类型设置默认的类型别名，也就是类名且不区分大小写
 
@@ -210,7 +210,7 @@ package：以包为单位，将包下所有的类型设置默认的类型别名�
 
 mappers
 
-​	package：以包为单位引入映射文件
+​ package：以包为单位引入映射文件
 
 要求：
 
@@ -486,17 +486,17 @@ void insertUser(User user);
 
 resultMap：设置自定义映射关系
 
-​	id：唯一标识，不能重复
+​ id：唯一标识，不能重复
 
-​	type：设置映射关系中的实体类类型
+​ type：设置映射关系中的实体类类型
 
-​		id：设置主键的映射关系
+​ id：设置主键的映射关系
 
-​		result：设置其他属性的映射关系
+​ result：设置其他属性的映射关系
 
-​			property：设置映射关系中的属性名，必须时type属性所设置的实体类类型中的属性名
+​ property：设置映射关系中的属性名，必须时type属性所设置的实体类类型中的属性名
 
-​			column：设置映射关系中的字段名，必须是sql语句查询出的字段名		
+​ column：设置映射关系中的字段名，必须是sql语句查询出的字段名
 
 ## 处理多对一的映射关系
 
@@ -531,9 +531,9 @@ resultMap：设置自定义映射关系
 
 association：处理多对一的映射关系
 
-​	property：需要处理多对一的映射关系的属性名
+​ property：需要处理多对一的映射关系的属性名
 
-​	javaType：该属性的类型
+​ javaType：该属性的类型
 
 3. **分布查询**
 
@@ -860,7 +860,7 @@ clearCache() //清空缓存
 2. 各jar包功能
 
    | jar包名称       | 作用                            |
-   | --------------- | ------------------------------- |
+      | --------------- | ------------------------------- |
    | mybatis-encache | Mybatis和EHCache的整合包        |
    | ehcache         | EHCache核心包                   |
    | slf4j-api       | SLF4J日志门面包                 |

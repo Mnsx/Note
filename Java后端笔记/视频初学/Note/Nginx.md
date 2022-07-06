@@ -12,13 +12,13 @@
 
 * 常用版本：
 
-  * Nginx开源版
+    * Nginx开源版
 
-  * Nginx Plus商业版
+    * Nginx Plus商业版
 
-  * openresty
+    * openresty
 
-  * Tengine
+    * Tengine
 
 * **编译安装**：
 
@@ -44,15 +44,15 @@
   >
   > `yum install -y gcc`
 
-	```
-	./configure: error: the HTTP rewrite module requires the **PCRE** library. You can either disable the module by using --without-http_rewrite_module option, or install the PCRE library into the system, or build the PCRE library statically from the source with nginx by using --with-pcre=<path> option.
-	```
+  ```
+  ./configure: error: the HTTP rewrite module requires the **PCRE** library. You can either disable the module by using --without-http_rewrite_module option, or install the PCRE library into the system, or build the PCRE library statically from the source with nginx by using --with-pcre=<path> option.
+  ```
 
-	> 解决方案——
-	>
-	> 根据报错的内容（PCRE）选择下载依赖
-	>
-	> `yum install -y pcre pcre-devel`
+  > 解决方案——
+  >
+  > 根据报错的内容（PCRE）选择下载依赖
+  >
+  > `yum install -y pcre pcre-devel`
 
 ## 启动Nginx
 
@@ -86,49 +86,49 @@
 
 * 安装程系统服务
 
-  1. 创建服务脚本
+    1. 创建服务脚本
 
-     `vi /usr/lib/systemd/system/nginx.service`
+       `vi /usr/lib/systemd/system/nginx.service`
 
-  2. 服务脚本内容
+    2. 服务脚本内容
 
-     ```
-     [Unit] 
-     
-     Description=nginx - web server 
-     
-     After=network.target remote-fs.target nss-lookup.target 
-     
-     [Service] 
-     
-     Type=forking 
-     
-     PIDFile=/usr/local/nginx/logs/nginx.pid 
-     
-     ExecStartPre=/usr/local/nginx/sbin/nginx -t -c /usr/local/nginx/conf/nginx.conf 
-     
-     ExecStart=/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf 
-     
-     ExecReload=/usr/local/nginx/sbin/nginx -s reload 
-     
-     ExecStop=/usr/local/nginx/sbin/nginx -s stop 
-     
-     ExecQuit=/usr/local/nginx/sbin/nginx -s quit 
-     
-     PrivateTmp=true 
-     
-     [Install] 
-     
-     WantedBy=multi-user.target
-     ```
+       ```
+       [Unit] 
+       
+       Description=nginx - web server 
+       
+       After=network.target remote-fs.target nss-lookup.target 
+       
+       [Service] 
+       
+       Type=forking 
+       
+       PIDFile=/usr/local/nginx/logs/nginx.pid 
+       
+       ExecStartPre=/usr/local/nginx/sbin/nginx -t -c /usr/local/nginx/conf/nginx.conf 
+       
+       ExecStart=/usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf 
+       
+       ExecReload=/usr/local/nginx/sbin/nginx -s reload 
+       
+       ExecStop=/usr/local/nginx/sbin/nginx -s stop 
+       
+       ExecQuit=/usr/local/nginx/sbin/nginx -s quit 
+       
+       PrivateTmp=true 
+       
+       [Install] 
+       
+       WantedBy=multi-user.target
+       ```
 
-  3. 重新加载系统服务
+    3. 重新加载系统服务
 
-     `systemctl daemon-reload`
+       `systemctl daemon-reload`
 
-  4. 启动服务
+    4. 启动服务
 
-     `systemctl start nginx.service`
+       `systemctl start nginx.service`
 
 * 开机启动
 
@@ -140,7 +140,7 @@
 
 进入Nginx的主目录——
 
->client_body_temp
+> client_body_temp
 >
 >conf
 >
@@ -190,13 +190,13 @@
 
   单个业务进程可接受连接数
 
-* include 
+* include
 
   默认为mine.types
 
   引入http mime类型
 
-* default_type 
+* default_type
 
   默认为applicaiton/octet-stream
 
@@ -247,7 +247,6 @@
   
   } 
   ```
-
 
 ## 虚拟主机
 
@@ -306,9 +305,9 @@ server 192.168.43.103:80;
   }
   ```
 
-  down：表示当前的server暂时不参与负载 
+  down：表示当前的server暂时不参与负载
 
-  weight：默认为1.weight越大，负载的权重就越大。 
+  weight：默认为1.weight越大，负载的权重就越大。
 
   backup： 其它所有的非backup机器down或者忙的时候，请求backup机器。
 
@@ -359,27 +358,27 @@ server 192.168.43.103:80;
 
 3. 使用一个location
 
-   * 使用正则表达式
+    * 使用正则表达式
 
-     / 通用匹配，任何请求都会匹配到。 
+      / 通用匹配，任何请求都会匹配到。
 
-     = 精准匹配，不是以指定模式开头
+      = 精准匹配，不是以指定模式开头
 
-     ~ 正则匹配，区分大小写 
+      ~ 正则匹配，区分大小写
 
-     ~* 正则匹配，不区分大小写
+      ~* 正则匹配，不区分大小写
 
-     ^~ 非正则匹配，匹配以指定模式开头的location
+      ^~ 非正则匹配，匹配以指定模式开头的location
 
-   * location匹配顺序
+    * location匹配顺序
 
-     多个正则location直接按书写顺序匹配，成功后就不会继续往后面匹配 
+      多个正则location直接按书写顺序匹配，成功后就不会继续往后面匹配
 
-     普通（非正则）location会一直往下，直到找到匹配度最高的（最大前缀匹配） 
+      普通（非正则）location会一直往下，直到找到匹配度最高的（最大前缀匹配）
 
-     当普通location与正则location同时存在，如果正则匹配成功,则不会再执行普通匹配 
+      当普通location与正则location同时存在，如果正则匹配成功,则不会再执行普通匹配
 
-     所有类型location存在时，“=”匹配 > “^~”匹配 > 正则匹配 > 普通（最大前缀匹配）
+      所有类型location存在时，“=”匹配 > “^~”匹配 > 正则匹配 > 普通（最大前缀匹配）
 
 ```
 location ~*/(css|img|js) {
@@ -399,13 +398,14 @@ index index.html index.htm;
 
 **root用来设置根目录，而alias在接受请求的时候在路径上不会加上location。**
 
-1）alias指定的目录是准确的，即location匹配访问的path目录下的文件直接是在alias目录下查找的； 
+1）alias指定的目录是准确的，即location匹配访问的path目录下的文件直接是在alias目录下查找的；
 
-2）root指定 的目录是location匹配访问的path目录的上一级目录,这个path目录一定要是真实存在root指定目录下的； 
+2）root指定 的目录是location匹配访问的path目录的上一级目录,这个path目录一定要是真实存在root指定目录下的；
 
-3）使用 alias标签的目录块中不能使用rewrite的break（具体原因不明）；另外，alias指定的目录后面必须要加上"/"符 号！！ 
+3）使用 alias标签的目录块中不能使用rewrite的break（具体原因不明）；另外，alias指定的目录后面必须要加上"/"符 号！！
 
-4）alias虚拟目录配置中，location匹配的path目录如果后面不带"/"，那么访问的url地址中这个path目录后 面加不加"/"不影响访问，访问时它会自动加上"/"； 但是如果location匹配的path目录后面加上"/"，那么访问的url地 址中这个path目录必须要加上"/"，访问时它不会自动加上"/"。如果不加上"/"，访问就会失败！ 
+4）alias虚拟目录配置中，location匹配的path目录如果后面不带"/"，那么访问的url地址中这个path目录后 面加不加"/"不影响访问，访问时它会自动加上"/"； 但是如果location匹配的path目录后面加上"/"
+，那么访问的url地 址中这个path目录必须要加上"/"，访问时它不会自动加上"/"。如果不加上"/"，访问就会失败！
 
 5）root目录配置 中，location匹配的path目录后面带不带"/"，都不会影响访问。
 
@@ -413,31 +413,31 @@ index index.html index.htm;
 
 ### rewrite语法格式及参数语法
 
-> rewrite是实现URL重写的关键指令，根据regex (正则表达式)部分内容， 
+> rewrite是实现URL重写的关键指令，根据regex (正则表达式)部分内容，
 >
-> 重定向到replacement，结尾是flag标记。 
+> 重定向到replacement，结尾是flag标记。
 >
 > `rewrite <regex> <replacement> [flag]`
 >
-> 关键字 正则 替代内容 flag标记 
+> 关键字 正则 替代内容 flag标记
 >
-> 关键字：其中关键字error_log不能改变 
+> 关键字：其中关键字error_log不能改变
 >
-> 正则：perl兼容正则表达式语句进行规则匹配 
+> 正则：perl兼容正则表达式语句进行规则匹配
 >
-> 替代内容：将正则匹配的内容替换成replacement 
+> 替代内容：将正则匹配的内容替换成replacement
 >
-> flag标记：rewrite支持的flag标记 
+> flag标记：rewrite支持的flag标记
 >
 > rewrite参数的标签段位置： server,location,if flag
 >
 > 标记说明：
 >
->  last #本条规则匹配完成后，继续向下匹配新的location URI规则 
+>  last #本条规则匹配完成后，继续向下匹配新的location URI规则
 >
-> break #本条规则匹配完成即终止，不再匹配后面的任何规则 
+> break #本条规则匹配完成即终止，不再匹配后面的任何规则
 >
-> redirect #返回302临时重定向，浏览器地址会显示跳转后的URL地址 
+> redirect #返回302临时重定向，浏览器地址会显示跳转后的URL地址
 >
 > permanent #返回301永久重定向，浏览器地址栏会显示跳转后的URL地址
 
@@ -482,9 +482,9 @@ return 403;
 }
 ```
 
-none， 检测 Referer 头域不存在的情况。 
+none， 检测 Referer 头域不存在的情况。
 
-blocked，检测 Referer 头域的值被防火墙或者代理服务器删除或伪装的情况。这种情况该头域的值不以 “http://” 或 “https://” 开头。 
+blocked，检测 Referer 头域的值被防火墙或者代理服务器删除或伪装的情况。这种情况该头域的值不以 “http://” 或 “https://” 开头。
 
 server_names ，设置一个或多个 URL ，检测 Referer 头域的值是否是这些 URL 中的某一个。
 

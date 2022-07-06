@@ -78,7 +78,8 @@ Endpoint实例在WebSocket握手时创建，并且在客户端于服务端链接
 
 **服务端如何推送数据给客户端**
 
-发送消息则由RemoteEndpoint完成，其实例由Sesssion维护，根据使用情况，我们可以通过Session.getBasicRemote获取同步消息发送的实例，然后调用其sendXxx()方法就可以发送消息，可以通过Session.getAsyncRemote获取异步消息发送实例
+发送消息则由RemoteEndpoint完成，其实例由Sesssion维护，根据使用情况，我们可以通过Session.getBasicRemote获取同步消息发送的实例，然后调用其sendXxx()
+方法就可以发送消息，可以通过Session.getAsyncRemote获取异步消息发送实例
 
 ```java
 @ServerEndpoint("/robin")
@@ -125,8 +126,8 @@ public class ChatEndPoint {
 
 * 服务端 ---》 客户端
 
-  * 系统消息格式：{"isSystem":true,"fromName":null,"message":["xxx","yyy"]}
-  * 推给指定用户的消息格式：{"isSystem":true,"fromName":"xxx","message":"xxx"}
+    * 系统消息格式：{"isSystem":true,"fromName":null,"message":["xxx","yyy"]}
+    * 推给指定用户的消息格式：{"isSystem":true,"fromName":"xxx","message":"xxx"}
 
 # 功能实现
 

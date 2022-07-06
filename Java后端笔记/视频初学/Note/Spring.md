@@ -36,50 +36,50 @@ class UserFactory{
 
 2. Spring提供IOC容器实现方式：（两个接口）
 
-   * BeanFactory——IOC容器基本实现，是Spring内部使用接口，不提供开发人员进行处理
+    * BeanFactory——IOC容器基本实现，是Spring内部使用接口，不提供开发人员进行处理
 
-     **加载配置文件时候不会创建对象，在获取对象（使用）才去创建对象**
+      **加载配置文件时候不会创建对象，在获取对象（使用）才去创建对象**
 
-   * ApplicationContext——BeanFactory接口得子接口，提供更强大得功能，一般由开发人员进行使用
+    * ApplicationContext——BeanFactory接口得子接口，提供更强大得功能，一般由开发人员进行使用
 
-​			  	**加载配置文件时候会把配置文件对象进行创建**
+​                **加载配置文件时候会把配置文件对象进行创建**
 
 3. ApplicationContext
 
 - ——ConfigurableApplicationContext
 
-  * ——AbstractApplicationContext
+    * ——AbstractApplicationContext
 
-    * ——AbstractRefreshableApplicationContext
+        * ——AbstractRefreshableApplicationContext
 
-      *  ——AbstractXmlApplicationContext
+            * ——AbstractXmlApplicationContext
 
-        * **——FileSystemXmlApplicationContext——实现类**
+            * **——FileSystemXmlApplicationContext——实现类**
 
-        * **——ClassPathXmlApplicationContext——实现类**
+            * **——ClassPathXmlApplicationContext——实现类**
 
 ## IOC操作Bean管理
 
 1. Bean管理——两个操作
-   1. Spring创建对象
-   2. Spring注入属性
+    1. Spring创建对象
+    2. Spring注入属性
 2. Bean管理操作有两种方式
-   1. 基于xml配置文件方式实现
-   2. 基于注解方式实现
+    1. 基于xml配置文件方式实现
+    2. 基于注解方式实现
 
 ## IOC操作Bean管理（基于XML方式）
 
 1. 基于xml方式创建对象
 
-   * 在spring配置文件中，使用bean标签，标签里面添加对应得属性，就可以实现对象创建
+    * 在spring配置文件中，使用bean标签，标签里面添加对应得属性，就可以实现对象创建
 
-   * 在bean标签有很多属性，介绍常用得属性——
+    * 在bean标签有很多属性，介绍常用得属性——
 
-       * id属性——唯一标识
+        * id属性——唯一标识
 
-       - class属性——创建对象所在类的全路径
+        - class属性——创建对象所在类的全路径
 
-   * 创建对象时候，默认也是执行的无参构造方法完成对象创建
+    * 创建对象时候，默认也是执行的无参构造方法完成对象创建
 
 2. 基于xml方式注入属性
 
@@ -118,7 +118,7 @@ public class Book{
 </bean>
 ```
 
-* 第二种注入方式——使用有参构造方法进行注入 
+* 第二种注入方式——使用有参构造方法进行注入
 
 1. 创建类，定义属性和对应的构造方法
 
@@ -162,7 +162,7 @@ public class Orders{
 ## IOC操作Bean管理（xml注入其他类型属性）
 
 1. 注入属性——字面量
-   1. null值
+    1. null值
 
 ```xml
 <property name="address">
@@ -170,7 +170,7 @@ public class Orders{
 </property>
 ```
 
-​					2. 属性值含特殊符号
+​ 2. 属性值含特殊符号
 
 ```xml
 <!--使用转移符号-->
@@ -183,11 +183,11 @@ public class Orders{
 
 2. 注入属性——外部Bean
 
-   1. 创建两个类service类和dao类
+    1. 创建两个类service类和dao类
 
-   2. 在service调用dao里面的方法
+    2. 在service调用dao里面的方法
 
-   3. 在Spring配置文件中配置
+    3. 在Spring配置文件中配置
 
 ```java
 public class UserService {
@@ -218,9 +218,9 @@ public class UserDaoIpml{
 
 3. 注入属性——内部Bean
 
-   1. 一对多关系：部门与员工
+    1. 一对多关系：部门与员工
 
-   2. 再实体类之间表示一对多的关系，员工表示所属部门，使用对象类型属性进行表示
+    2. 再实体类之间表示一对多的关系，员工表示所属部门，使用对象类型属性进行表示
 
 ```java
 public class Dept {
@@ -255,7 +255,7 @@ public class Emp{
 ```
 
 4. 注入属性——级联赋值
-   
+
    第一种写法
 
 ```java
@@ -480,8 +480,8 @@ public class MyBean implements FactoryBean<Course>{
 1. 在spring里面，设置创建bean实例可以是单实例、也可以是多实例对象
 
 2. Spring中默认设置对象为单实例对象
-   1. singleton 默认值 表示是单实例对象
-   2. prototype 表示是多实例对象
+    1. singleton 默认值 表示是单实例对象
+    2. prototype 表示是多实例对象
 
 ```xml
 <bean id="book" class="top.mnsx.springstudy.Book" scope="prototype">
@@ -490,19 +490,19 @@ public class MyBean implements FactoryBean<Course>{
 ```
 
 3. singleton和prototype的区别
-   1. singleton是单实例、prototype是多实例
-   2. 设置singleton时，加载spring配置文件的时候创建单实例对象，设置prototype时，调用getBean方法时，创建多实例对象
+    1. singleton是单实例、prototype是多实例
+    2. 设置singleton时，加载spring配置文件的时候创建单实例对象，设置prototype时，调用getBean方法时，创建多实例对象
 
 ## IOC操作Bean管理（bean的生命周期）
 
 1. 生命周期
-   * 从对象创建到对象销毁的 过程
+    * 从对象创建到对象销毁的 过程
 2. bean声明周期
-   1. 通过构造器创建bean实例（无参数构造）
-   2. 为bean属性设置值和对其他bean引用（调用set方法）
-   3. 调用bean的初始化方法（需要配置初始化方法）
-   4. bean可以使用（对象获取）
-   5. 当容器关闭时候，调用bean销毁的方法（需要进行配置销毁的方法）
+    1. 通过构造器创建bean实例（无参数构造）
+    2. 为bean属性设置值和对其他bean引用（调用set方法）
+    3. 调用bean的初始化方法（需要配置初始化方法）
+    4. bean可以使用（对象获取）
+    5. 当容器关闭时候，调用bean销毁的方法（需要进行配置销毁的方法）
 
 ```java
 //使用ApplicationContext的子类调用close方法手动关闭bean
@@ -515,13 +515,13 @@ ApplicationContext app = new ClassPathXmlApplicationContext("bean.xml");
 ```
 
 3. bean的后置处理器，bean的生命周期变成7步
-   1. 通过构造器创建bean实例（无参数构造）
-   2. 为bean属性设置值和对其他bean引用（调用set方法）
-   3. 把bean的实例传递bean后置处理器中的方法
-   4. 调用bean的初始化方法（需要配置初始化方法）
-   5. 把bean的实例传递bean后置处理器中的方法
-   6. bean可以使用（对象获取）
-   7. 当容器关闭时候，调用bean销毁的方法（需要进行配置销毁的方法）
+    1. 通过构造器创建bean实例（无参数构造）
+    2. 为bean属性设置值和对其他bean引用（调用set方法）
+    3. 把bean的实例传递bean后置处理器中的方法
+    4. 调用bean的初始化方法（需要配置初始化方法）
+    5. 把bean的实例传递bean后置处理器中的方法
+    6. bean可以使用（对象获取）
+    7. 当容器关闭时候，调用bean销毁的方法（需要进行配置销毁的方法）
 
 ```java
 // 创建类，实现接口
@@ -545,7 +545,7 @@ public class MyBeanPost implements BeanPostProcessor {
 ## IOC操作Bean管理（xml自动装配）
 
 1. 自动装配
-   * 根据指定装配规则（属性名称或者属性类型），Spring自动匹配属性值进行注入
+    * 根据指定装配规则（属性名称或者属性类型），Spring自动匹配属性值进行注入
 
 ```xml
 <!--
@@ -592,14 +592,14 @@ password=root
 ## IOC操作Bean管理（基于注解方式）
 
 1. 注解
-   * 代码黎一些特殊的标记，格式：@注解名称（属性名称=属性值，属性名称=属性值...）
-   * 使用注解，注解作用在类上，方法上，属性上
-   * 使用目的：简化xml配置
+    * 代码黎一些特殊的标记，格式：@注解名称（属性名称=属性值，属性名称=属性值...）
+    * 使用注解，注解作用在类上，方法上，属性上
+    * 使用目的：简化xml配置
 2. Spring针对Bean管理中的创建对象提供注解
-   1. @Component
-   2. @Service
-   3. @Controller
-   4. @Repository
+    1. @Component
+    2. @Service
+    3. @Controller
+    4. @Repository
 
 ## IOC操作Bean管理（组件扫描配置）
 
@@ -656,7 +656,7 @@ public class UserServiceImpl implements UserService {
 
 2. @Qualifier —— 根据属性名称注入
 
-   @Qualifier必须要与@Autowired一起使用 
+   @Qualifier必须要与@Autowired一起使用
 
 ```java
 public interface UserDao {
@@ -780,9 +780,9 @@ AOP底层使用动态代理
 ## AOP（JDK动态代理）
 
 1. 调用newProxyInstance方法
-   * ClassLoader 类加载器
-   * Class 增强方法所在类，这个类实现的接口，支持多个接口
-   * 实现这个接口InvocationHandler，创建对象，写增强部分
+    * ClassLoader 类加载器
+    * Class 增强方法所在类，这个类实现的接口，支持多个接口
+    * 实现这个接口InvocationHandler，创建对象，写增强部分
 
 2. 编写JDK动态代理
 
@@ -833,11 +833,11 @@ public class MyIvocationHandler(){
 2. 切入点——实际被增强的方法就是切入点
 
 3. 通知（增强）——实际增强的部分
-   1. 前置通知——方法前执行
-   2. 后置通知——方法后执行
-   3. 环绕通知——方法前后都会执行
-   4. 异常通知——报异常后通知
-   5. 最终通知——finally，无论如何，结束时都会通知
+    1. 前置通知——方法前执行
+    2. 后置通知——方法后执行
+    3. 环绕通知——方法前后都会执行
+    4. 异常通知——报异常后通知
+    5. 最终通知——finally，无论如何，结束时都会通知
 4. 切面——切入点（切点） + 通知（增强）
 
 ## AOP操作（准备）
@@ -848,8 +848,8 @@ public class MyIvocationHandler(){
 
 2. 基于AspectJ实现AOP操作
 
-   1. 基于XML配置文件实现
-   2. 机遇与注解方式实现
+    1. 基于XML配置文件实现
+    2. 机遇与注解方式实现
 
 3. 切入点表达式
 
@@ -882,10 +882,10 @@ public class UserProxy {
 ```
 
 3. 进行通知的配置
-   1. 在Spring的配置文件中，开启注解扫描
-   2. 使用注解创建User和UserProxy对象
-   3. 在增强类上面添加注释@Aspect
-   4. 在spring配置文件中开启生成代理对象
+    1. 在Spring的配置文件中，开启注解扫描
+    2. 使用注解创建User和UserProxy对象
+    3. 在增强类上面添加注释@Aspect
+    4. 在spring配置文件中开启生成代理对象
 
 4. 配置不同类型的通知
 
@@ -1117,10 +1117,10 @@ public class User {
 事务是数据库操作最基本单元，逻辑上一组操作，要么成功，如果有一个失败，所有操作都会失败
 
 1. 事务四大特性（ACID）
-   1. 原子性——过程中不可分割，要成成功要么失败
-   2. 一致性——开始和结束，总量不变
-   3. 隔离性——多事务操作，事务之间不会有影响
-   4. 持久性——事务提交后，表中数据发生变化
+    1. 原子性——过程中不可分割，要成成功要么失败
+    2. 一致性——开始和结束，总量不变
+    3. 隔离性——多事务操作，事务之间不会有影响
+    4. 持久性——事务提交后，表中数据发生变化
 
 ```xml
 <context:component-scan base-package="top.mnsx"></context:component-scan>
@@ -1183,14 +1183,14 @@ public class TestBook {
 1. 事务添加到JavaEE三层结构里Service层（业务逻辑层）
 
 2. 在Spring中进行事务管理操作
-   1. 编程式事务管理——臃肿、冗余
-   2. 声明式事务管理
+    1. 编程式事务管理——臃肿、冗余
+    2. 声明式事务管理
 3. 声明式事务管理
-   1. 基于注解方式
-   2. 基于xml配置文件
+    1. 基于注解方式
+    2. 基于xml配置文件
 4. 在Spring进行声明式事务管理，底层使用AOP原理
 5. Spring事务管理API
-   * 提供一个接口，代表事务管理器，这个接口针对不同的框架提供了不同的实现类
+    * 提供一个接口，代表事务管理器，这个接口针对不同的框架提供了不同的实现类
 
 ## 事务操作（注解方式事务管理）
 
@@ -1227,7 +1227,7 @@ public class UserService {
 ```
 
 * 如果这个注解加到类上面，所有的方法都将被事务管理
-* 如果加到方法上，该方法被事务管理  
+* 如果加到方法上，该方法被事务管理
 
 ## 事务操作（声明式事务管理参数配置）
 
@@ -1235,44 +1235,44 @@ public class UserService {
 
 2. propagation：事务传播行为
 
-   * 多事务方法直接进行调用，这个过程事务是如何进行管理的
+    * 多事务方法直接进行调用，这个过程事务是如何进行管理的
 
-   * Spring框架事务传播行为有7种
+    * Spring框架事务传播行为有7种
 
-     * REQUIRED：如果add本身有事务，调用update方法后，也是使用add方法黎面的事务，如果add本身没有事务，就会建一个新的事务
+        * REQUIRED：如果add本身有事务，调用update方法后，也是使用add方法黎面的事务，如果add本身没有事务，就会建一个新的事务
 
-     * REQUIRED_NEW：使用add方法调用update方法，如果add无论是否有事务，都创建新的事务
+        * REQUIRED_NEW：使用add方法调用update方法，如果add无论是否有事务，都创建新的事务
 
-       ![image-20220411144241700](..\Picture\Spring\事务传播行为.png)
+          ![image-20220411144241700](..\Picture\Spring\事务传播行为.png)
 
 3. ioslation：事务隔离级别
 
-   * 事务有一个特性叫隔离性，多事务之间不会产生影响，不考虑隔离性会产生很多问题
+    * 事务有一个特性叫隔离性，多事务之间不会产生影响，不考虑隔离性会产生很多问题
 
-   * 有三个读问题：脏读、不可重复读、虚（幻）读
+    * 有三个读问题：脏读、不可重复读、虚（幻）读
 
-     * 脏读：一个未提交的事务读取到另一个未提交事务的数据
-     * 不可重复读：一个未提交的事务读取到另一个提交的事务的数据
-     * 虚读：一个未提交事务读取到一个提交事务新添加的数据
+        * 脏读：一个未提交的事务读取到另一个未提交事务的数据
+        * 不可重复读：一个未提交的事务读取到另一个提交的事务的数据
+        * 虚读：一个未提交事务读取到一个提交事务新添加的数据
 
-   * 通过设置事务隔离性，来解决问题
+    * 通过设置事务隔离性，来解决问题
 
-     ![事务隔离级别](..\Picture\Spring\事务隔离级别.png)
+      ![事务隔离级别](..\Picture\Spring\事务隔离级别.png)
 
 4. timeout：超时时间
-   * 事务需要在一定时间内进行提交，如果不提交进行回滚
-   * 默认值为-1，设置时间以秒为单位进行计算
+    * 事务需要在一定时间内进行提交，如果不提交进行回滚
+    * 默认值为-1，设置时间以秒为单位进行计算
 
 5. readOnly：是否只读
-   * 读：查询操作， 写：添加修改删除操作
-   * 默认值为false 表示可以查询，可以添加修改删除操作
-   * 修改为true，不能进行写操作
+    * 读：查询操作， 写：添加修改删除操作
+    * 默认值为false 表示可以查询，可以添加修改删除操作
+    * 修改为true，不能进行写操作
 
 6. rollbackFor：回滚
-   * 设置出现了那些异常回滚
+    * 设置出现了那些异常回滚
 
 7. noRollbackFor：不回滚
-   * 设置出现了那些异常不回滚
+    * 设置出现了那些异常不回滚
 
 ## 事务操作（XML声明式事务管理）
 
@@ -1344,8 +1344,8 @@ public class TxConfig {
 
 1. 整个Spring5框架代码基于Java8，运行时兼容JDK9，许多不建议使用的类和方法在代码库种被删除
 2. Spring5.0框架自带通用的日志封装
-   1. Spring5已经移除Log4jConfigListener， 官方建议使用Log4j2
-   2. Spring5框架整合Log4j2
+    1. Spring5已经移除Log4jConfigListener， 官方建议使用Log4j2
+    2. Spring5框架整合Log4j2
 
 ## Nullable注解
 
@@ -1395,27 +1395,27 @@ public void testGenericApplicationContext() {
 
 3. 异步非阻塞
 
-   * 异步和同步
+    * 异步和同步
 
-   * 非阻塞和阻塞
+    * 非阻塞和阻塞
 
-     针对的对象不同
+      针对的对象不同
 
-     异步同步针对调用者，调用者发送请求，如果要等对方回应后做其他的事情就是同步，如果发送请求之后不等着对方回应就去做其他的事情就是异步
+      异步同步针对调用者，调用者发送请求，如果要等对方回应后做其他的事情就是同步，如果发送请求之后不等着对方回应就去做其他的事情就是异步
 
-     阻塞和非阻塞针对被调用者，被调用者收到请求后，昨晚请求任务后才给出反馈就是阻塞，收到请求之手马上给出反馈然后就去做其他事情就是非阻塞
+      阻塞和非阻塞针对被调用者，被调用者收到请求后，昨晚请求任务后才给出反馈就是阻塞，收到请求之手马上给出反馈然后就去做其他事情就是非阻塞
 
 4. webflux特点
 
-   1. 非阻塞式：在有限资源下，提高系统吞吐量和伸缩性，以Reacrot为基础实现响应式编程
-   2. 函数式：Spring5框架基于java8框架，Webflux使用java8函数式编程方式实现路由请求
+    1. 非阻塞式：在有限资源下，提高系统吞吐量和伸缩性，以Reacrot为基础实现响应式编程
+    2. 函数式：Spring5框架基于java8框架，Webflux使用java8函数式编程方式实现路由请求
 
 5. 比较SpringMVC和SpringWebFlux
 
    ![image-20220411225144683](..\Picture\Spring\image-20220411225144683.png)
 
-   * 两个框架都可以使用注解方式，都运行在tomcat等容器中
-   * SpringMVC采用命令式编程，Webflux采用异步响应式编程
+    * 两个框架都可以使用注解方式，都运行在tomcat等容器中
+    * SpringMVC采用命令式编程，Webflux采用异步响应式编程
 
 ## Webflux——响应式编程
 
@@ -1423,7 +1423,7 @@ public void testGenericApplicationContext() {
 
 Java8及其之前版本
 
-提供的观察者模式两个类Observer和Observable 
+提供的观察者模式两个类Observer和Observable
 
 ```java
 public class ObserverDemo extends Observable {
@@ -1478,9 +1478,9 @@ public class TestReactor {
 ```
 
 4. 三种信号特点
-   * 错误信号和完成信号都是终止信号，不能共存的
-   * 如果没有发送任何元素值，而是直接发送错误或者完成信号，表示空数据流
-   * 如果没有错误信号，没有完成信号，表示是无限数据流
+    * 错误信号和完成信号都是终止信号，不能共存的
+    * 如果没有发送任何元素值，而是直接发送错误或者完成信号，表示空数据流
+    * 如果没有错误信号，没有完成信号，表示是无限数据流
 
 5. 调用just或者其他方法只是声明了数据流，数据流并没有发出，只是进行订阅之后才会触发数据流，不订阅什么都不会发生的
 
@@ -1490,8 +1490,8 @@ public class TestReactor {
 ```
 
 7. 操作符——对数据进行一道道操作成为操作符，比如工厂流水线
-   * map 元素映射成新的元素
-   * flatMap 元素映射成新的数据流——把每个元素转换成流，在把所有流合成大流
+    * map 元素映射成新的元素
+    * flatMap 元素映射成新的数据流——把每个元素转换成流，在把所有流合成大流
 
 ## SpringWebflux执行流程和核心API
 
@@ -1506,9 +1506,9 @@ SpringWebFlux基于Reactor，默认使用容器是Netty，Netty是高性能的NI
 ```
 
 2. SpringWebFlux里面DispatcherHandler，负责请求的处理
-   * HanddlerMapping——请求查询到处理的方法
-   * HandlerAdapter——真正负责请求处理
-   * HandlerResultHandler——响应结果处理
+    * HanddlerMapping——请求查询到处理的方法
+    * HandlerAdapter——真正负责请求处理
+    * HandlerResultHandler——响应结果处理
 3. SpringWebFlux是心啊函数式编程，两个接口：RouterFunction(路由处理)和HandlerFunction(处理函数)
 
 ## SpringWebFulx（基于注解编程模型）

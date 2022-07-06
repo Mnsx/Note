@@ -40,17 +40,17 @@ SpringMVC是Spring为表述层开发提供的一套完整的解决方法。再�
 
 1. 创建maven工程
 
-   1. 添加web模块
-   2. 打包方式web
-   3. 引入依赖
+    1. 添加web模块
+    2. 打包方式web
+    3. 引入依赖
 
 2. 配置web.xml
 
    注册SpringMVC的前端控制器DispatcherServlet
 
-   1. 默认配置方式
+    1. 默认配置方式
 
-      此配置作用下，SpringMVC的配置文件默认位于WEB-INF下，默认名称为\<servlet-name\>-servlet.xml，例如，以下配置所对应SpringMVC的配置文件位于WEB-INF下，文件名为SpringMVC-servlet.xml
+       此配置作用下，SpringMVC的配置文件默认位于WEB-INF下，默认名称为\<servlet-name\>-servlet.xml，例如，以下配置所对应SpringMVC的配置文件位于WEB-INF下，文件名为SpringMVC-servlet.xml
 
    ```xml
    <servlet>
@@ -68,9 +68,9 @@ SpringMVC是Spring为表述层开发提供的一套完整的解决方法。再�
    </servlet-mapping>
    ```
 
-   2. 扩展配置方式
+    2. 扩展配置方式
 
-      可通过init-param标签设置SpringMVC配置文件的位置和名称，通过load-on-startup标签设置SpringMVC前端控制器DispatcherServlet的初始化时间
+       可通过init-param标签设置SpringMVC配置文件的位置和名称，通过load-on-startup标签设置SpringMVC前端控制器DispatcherServlet的初始化时间
 
    ```xml
    <servlet>
@@ -100,7 +100,7 @@ SpringMVC是Spring为表述层开发提供的一套完整的解决方法。再�
    >
    > 因此就可以避免再访问jsp页面时，该请求被DispatcherServlet处理，从而找不到相应的页面/\*则能够匹配所有请求，例如再使用过滤器时，若需要队所有请求进行过滤，就需要使用/\*的写
 
-   3. 创建请求控制器
+    3. 创建请求控制器
 
    ```java
    @Contoller
@@ -138,9 +138,9 @@ SpringMVC是Spring为表述层开发提供的一套完整的解决方法。再�
    </html>
    ```
 
-   4. 总结
+    4. 总结
 
-      浏览器发送请求，若请求地址符合前端控制器的url-pattern，该请求就会被前端控制器DispatcherServlet处理。前端控制器会会读取SpringMVC的核心配置文件，通过扫描组件来找到控制器，将请求地址和控制器@RequestMapping注解的value属性值进行匹配，若匹配成功，该注解所表示的控制器方法就是处理请求的方法。处理请求的方法需要返回一个字符串类型的视图类型，该视图名称会被视图解析器解析，加上前缀和后缀组成视图路径，通过Thymeleaf对视图进行渲染，最终转发到视图所对应的页面
+       浏览器发送请求，若请求地址符合前端控制器的url-pattern，该请求就会被前端控制器DispatcherServlet处理。前端控制器会会读取SpringMVC的核心配置文件，通过扫描组件来找到控制器，将请求地址和控制器@RequestMapping注解的value属性值进行匹配，若匹配成功，该注解所表示的控制器方法就是处理请求的方法。处理请求的方法需要返回一个字符串类型的视图类型，该视图名称会被视图解析器解析，加上前缀和后缀组成视图路径，通过Thymeleaf对视图进行渲染，最终转发到视图所对应的页面
 
 # @RequestMapping注解
 
@@ -212,20 +212,20 @@ public String testRequestMapping(){
 ```
 
 > 1. 对于处理指定请求方式的控制器方法，SpringMVC中提供了@RequestMapping的派生注解
->
->    处理get请求的映射——》@GetMapping
->
->    处理post请求的映射——》@PostMapping
->
->    处理put请求的映射——》@PutMapping
->
->    处理delete请求的映射——》@DeleteMapping
+     >
+     >    处理get请求的映射——》@GetMapping
+     >
+     >    处理post请求的映射——》@PostMapping
+     >
+     >    处理put请求的映射——》@PutMapping
+     >
+     >    处理delete请求的映射——》@DeleteMapping
 >
 > 2. 常用的请求方法有get、post、put、delete
->
->    但是目前浏览器只支持get和post，若在form表单提交时，method设置为其他请求方式的字符串，则按照默认的请求方式get来处理
->
->    若要发送put和delete请求，则需要通过spring提供的过滤器HiddenHttpMethodFilter
+     >
+     >    但是目前浏览器只支持get和post，若在form表单提交时，method设置为其他请求方式的字符串，则按照默认的请求方式get来处理
+     >
+     >    若要发送put和delete请求，则需要通过spring提供的过滤器HiddenHttpMethodFilter
 
 ## @RequestMapping注解的params属性（了解）
 
@@ -338,7 +338,8 @@ value——指定为形参赋值的请求参数的参数名
 
 required——设置是否必须传输此请求参数，默认为true
 
-若设置为true时，则当前请求必须传输value所指定的请求参数，若没有传输该请求参数，且没有设置defaultValue属性，则页面报错400：Required String Paramter ‘xxx’ is not present; 若设置为false，则当前请求不是必须传输value所指定的请求参数，若没有传输，则注解所表示的形参的值为null
+若设置为true时，则当前请求必须传输value所指定的请求参数，若没有传输该请求参数，且没有设置defaultValue属性，则页面报错400：Required String Paramter ‘xxx’ is not present;
+若设置为false，则当前请求不是必须传输value所指定的请求参数，若没有传输，则注解所表示的形参的值为null
 
 defaultValue——不管required属性值为true或false，当value所指定的请求参数没有传输时，则使用默认值为形参赋值
 
@@ -527,7 +528,8 @@ SpringMVC中默认的转发视图是InternalResourceView
 
 SpringMVC中创建转发视图的情况
 
-当控制器方法中所设置的视图名称以“forward:”为前缀时，创建InternalResourceView视图，此时的视图名称不会被SpringMVC配置文件中所配置的视图解析器解析，而是会将前缀“forward:“去掉，剩余的部分作为最终路径通过转发的方式进行跳转
+当控制器方法中所设置的视图名称以“forward:”为前缀时，创建InternalResourceView视图，此时的视图名称不会被SpringMVC配置文件中所配置的视图解析器解析，而是会将前缀“forward:
+“去掉，剩余的部分作为最终路径通过转发的方式进行跳转
 
 ```java
 @RequestMapping("/testForward")
@@ -928,7 +930,7 @@ public class ExceptionController {
    ```
 
    | 静态资源                                                     | 动态资源                                                     |
-   | ------------------------------------------------------------ | ------------------------------------------------------------ |
+      | ------------------------------------------------------------ | ------------------------------------------------------------ |
    | 可以理解为前端的固定页面，这里面包含Html、css、js、图片等，不需要查询数据库也不需要程序处理，直接就能够显示的页面，如果想要修改内容则必须修改页面，但是访问效率相当高 | 需要程序处理或者从数据库中读取数据，能够根据不同的条件在页面显示不同的数据，内容更新不需要修改页面但是访问速度不及静态页面 |
 
 3. 支持mvc注解驱动
@@ -944,7 +946,7 @@ public class ExceptionController {
 <mvc:annotation-driven/>
 ```
 
-​	annotation-drien配置帮助我们自动完成上述两个实例的注入
+​ annotation-drien配置帮助我们自动完成上述两个实例的注入
 
 4. 视图解析器
 
@@ -1141,26 +1143,26 @@ Dispatcherl对请求URL进行解析，得到穹丘资源标识符（URI），判
 **参考源码**
 
 * 不存在
-  * 在判断是否配置了mvc:default-servlet-handler
-  * 如果没有配置，则控制台报映射查找不到，客户端展示404错误
-  * 如果有配置，则访问目标资源（一般为静态资源），找不到客户端也会展示404错误
+    * 在判断是否配置了mvc:default-servlet-handler
+    * 如果没有配置，则控制台报映射查找不到，客户端展示404错误
+    * 如果有配置，则访问目标资源（一般为静态资源），找不到客户端也会展示404错误
 
 * 存在
 
-  * 根据该URI，调用HandlerMapping获得该Handler配置的所有相关的对象（包括Handler对象以及Handler对象对应的拦截器），最后以HandlerExecutionChain执行链对象的形式返回
-  * DispatcherServlet根据获取的Handler，选择一个合适的HandlerAdapter
-  * 如果成功获取HandlerAdapter，此时将开始执行拦截器的preHandlerAdapter
-  * 提取Request中的模型数据，填充Handler入参，开始执行Handler（Controller）方法，处理请求。在填充Handler的入参过程中，根据你的配置，Spring将帮你做一些额外的工作
-    * HttpMessageConverter：将请求消息转换成一个对象，将对象转换成指定的相应信息
-    * 数据转换：对请求消息进行数据转换
-    * 数据格式化：对请求消息进行数据格式化
-    * 数据验证：验证数据的有效性，验证结果存储到BindingResult或Error中
-  * Handler执行完成后，向DispatcherServlet返回一个ModelAndView对象
+    * 根据该URI，调用HandlerMapping获得该Handler配置的所有相关的对象（包括Handler对象以及Handler对象对应的拦截器），最后以HandlerExecutionChain执行链对象的形式返回
+    * DispatcherServlet根据获取的Handler，选择一个合适的HandlerAdapter
+    * 如果成功获取HandlerAdapter，此时将开始执行拦截器的preHandlerAdapter
+    * 提取Request中的模型数据，填充Handler入参，开始执行Handler（Controller）方法，处理请求。在填充Handler的入参过程中，根据你的配置，Spring将帮你做一些额外的工作
+        * HttpMessageConverter：将请求消息转换成一个对象，将对象转换成指定的相应信息
+        * 数据转换：对请求消息进行数据转换
+        * 数据格式化：对请求消息进行数据格式化
+        * 数据验证：验证数据的有效性，验证结果存储到BindingResult或Error中
+    * Handler执行完成后，向DispatcherServlet返回一个ModelAndView对象
 
-  * 此时将开始执行拦截器的postHandle方法
-  * 根据返回的ModelAndView选择一个合适的ViewResolver进行视图解析，根据Model和View来渲染视图
-  * 渲染视图完毕执行后拦截器的afterCompletion’方法
-  * 将渲染结果返回客户端
+    * 此时将开始执行拦截器的postHandle方法
+    * 根据返回的ModelAndView选择一个合适的ViewResolver进行视图解析，根据Model和View来渲染视图
+    * 渲染视图完毕执行后拦截器的afterCompletion’方法
+    * 将渲染结果返回客户端
 
 
 

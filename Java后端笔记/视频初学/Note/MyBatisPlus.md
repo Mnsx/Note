@@ -17,7 +17,8 @@ mybatis-plus.configuration.log-impl=org.apache.ibatis.logging.stdout.StdOutImpl
 
 雪花算法（Snowflake）是一种生成分布式全局唯一ID的算法，生成的ID称为Snowflake IDs或snowflakes。
 
-一个Snowflake ID有64位元。前41位是时间戳，表示了自选定的时期以来的毫秒数。 接下来的10位代表计算机ID，防止冲突。 其余12位代表每台机器上生成ID的序列号，这允许在同一毫秒内创建多个Snowflake ID。SnowflakeID基于时间生成，故可以按时间排序。**此外，一个ID的生成时间可以由其自身推断出来，反之亦然。该特性可以用于按时间筛选ID，以及与之联系的****对象****。**
+一个Snowflake ID有64位元。前41位是时间戳，表示了自选定的时期以来的毫秒数。 接下来的10位代表计算机ID，防止冲突。 其余12位代表每台机器上生成ID的序列号，这允许在同一毫秒内创建多个Snowflake
+ID。SnowflakeID基于时间生成，故可以按时间排序。**此外，一个ID的生成时间可以由其自身推断出来，反之亦然。该特性可以用于按时间筛选ID，以及与之联系的****对象****。**
 
 **主键自增**
 

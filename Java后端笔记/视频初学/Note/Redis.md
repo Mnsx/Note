@@ -24,12 +24,13 @@ redis 7.0
 
 * 后台启动（推荐）
 
-  进入/opt中的redis文件中，将redis.conf复制到/etc目录下，`vim /etc/redis.conf`，通过vim指令搜索daemonize，将no改为yes，进入/usr/local/bin中使用`redis-server /etc/redis.conf`
+  进入/opt中的redis文件中，将redis.conf复制到/etc目录下，`vim /etc/redis.conf`
+  ，通过vim指令搜索daemonize，将no改为yes，进入/usr/local/bin中使用`redis-server /etc/redis.conf`
 
-  * 可以通过`redis-cli`对其进行管理
-  * 关闭——
-    * 可以在redis-cli中使用`shutdown`
-    * 可以使用`ps -ef | grep redis`搜索redis使用的端口再使用`kill -9 端口号`关闭
+    * 可以通过`redis-cli`对其进行管理
+    * 关闭——
+        * 可以在redis-cli中使用`shutdown`
+        * 可以使用`ps -ef | grep redis`搜索redis使用的端口再使用`kill -9 端口号`关闭
 
 # 常用五大类型数据
 
@@ -435,14 +436,14 @@ Redis事务的主要作用就是串联多个命令防止别的命令插队
 > 通过ad测试
 >
 > 1. 下载工具
->
->    `yum install httpd-tools`
+     >
+     >    `yum install httpd-tools`
 >
 > 2. 模拟表单数据提交参数，以&符号结尾
 >
 > 3. 使用ad工具模拟
->
->    `ab -n 1000 -c 100 -p postfile -T 'application/x-www-form-urlencoded‘ http://192.168.140.1:8080/seckill/doseckill`
+     >
+     >    `ab -n 1000 -c 100 -p postfile -T 'application/x-www-form-urlencoded‘ http://192.168.140.1:8080/seckill/doseckill`
 
 ### 核心代码
 
@@ -678,7 +679,8 @@ public class SecKill_redisByScript {
 
 2. 如何进行持久化
 
-   Redis会单独创建（fork）一个子进程来进行持久化，会先将数据写入到一个临时文件中，待持久化过程都结束了，再用这个临时文件替换上次持久化好的文件。整个过程中，主进程时不进行任何IO操作的，这就保证了极高的性能如果需要进行大规模数据的恢复，且对于数据恢复的完整性不是非常敏感，那RDB方式要比AOF方式更加有效。**RDB缺点是最后一次持久化后的数据可能丢失**
+   Redis会单独创建（fork）一个子进程来进行持久化，会先将数据写入到一个临时文件中，待持久化过程都结束了，再用这个临时文件替换上次持久化好的文件。整个过程中，主进程时不进行任何IO操作的，这就保证了极高的性能如果需要进行大规模数据的恢复，且对于数据恢复的完整性不是非常敏感，那RDB方式要比AOF方式更加有效。**
+   RDB缺点是最后一次持久化后的数据可能丢失**
 
 3. Fork
 
@@ -690,29 +692,30 @@ public class SecKill_redisByScript {
 
 4. 优势
 
-   * 适合大规模的数据恢复
-   * 对数据完整性和一致性要求不高更适合使用
-   * 节省磁盘空间
-   * 恢复速度快
+    * 适合大规模的数据恢复
+    * 对数据完整性和一致性要求不高更适合使用
+    * 节省磁盘空间
+    * 恢复速度快
 
 5. 劣势
 
-   * fork的时候，内存中的数据被克隆了一份，大概2倍的膨胀性需要考虑
-   * 虽然Redis在fork时使用了写时拷贝技术，但是如果数据庞大时还是比较消耗性能
-   * 在备份周期在一定间隔时间做一次备份，所以如果Redis意外down掉的话，就会丢失最后一次快照后的所有修改
+    * fork的时候，内存中的数据被克隆了一份，大概2倍的膨胀性需要考虑
+    * 虽然Redis在fork时使用了写时拷贝技术，但是如果数据庞大时还是比较消耗性能
+    * 在备份周期在一定间隔时间做一次备份，所以如果Redis意外down掉的话，就会丢失最后一次快照后的所有修改
 
 ## AOF
 
 1. AOF简介
 
-   **以日志的形式来记录每个写操作（增量保存）**，将Redis执行过的所有写指令记录下来（读操作不记录），只许追加文件但不可以改写文件，reids启动之初会读取该文件重新构建数据，换言之，redis重启的话就根据日志文件的内容将写指令之前到后执行一次以完成数据的恢复工作
+   **以日志的形式来记录每个写操作（增量保存）**
+   ，将Redis执行过的所有写指令记录下来（读操作不记录），只许追加文件但不可以改写文件，reids启动之初会读取该文件重新构建数据，换言之，redis重启的话就根据日志文件的内容将写指令之前到后执行一次以完成数据的恢复工作
 
 2. AOF持久化流程
 
-   1. 客户端的请求写命令会被append追加到AOF缓冲区内
-   2. AOF缓冲区根据AOF持久化策略[always,everysec,no]将操作sync同步到磁盘AOF文件中
-   3. AOF文件大小超过重写策略或手动重写时，会对AOF文件rewrite重写，压缩AOF文件含量
-   4. Redis服务重启时，会重新load加载AOF文件中的写操作达到数据恢复的目的
+    1. 客户端的请求写命令会被append追加到AOF缓冲区内
+    2. AOF缓冲区根据AOF持久化策略[always,everysec,no]将操作sync同步到磁盘AOF文件中
+    3. AOF文件大小超过重写策略或手动重写时，会对AOF文件rewrite重写，压缩AOF文件含量
+    4. Redis服务重启时，会重新load加载AOF文件中的写操作达到数据恢复的目的
 
 3. AOF默认不开启
 
@@ -730,16 +733,16 @@ public class SecKill_redisByScript {
 
    正常恢复：
 
-   * 修改默认的appendonly no，改为yes
-   * 将有数据的aof文件复制一份保存到对应目录
-   * 恢复：重启redis然后重新加载
+    * 修改默认的appendonly no，改为yes
+    * 将有数据的aof文件复制一份保存到对应目录
+    * 恢复：重启redis然后重新加载
 
    异常恢复：
 
-   * 修改默认的appendonly no 改为yes
-   * 如遇到AOF文件损坏，通过/usr/local/bin/redis-check-aof--fix-appendonly.aof进行恢复
-   * 备份被写坏的AOF文件
-   * 恢复：重启redis，然后重新加载
+    * 修改默认的appendonly no 改为yes
+    * 如遇到AOF文件损坏，通过/usr/local/bin/redis-check-aof--fix-appendonly.aof进行恢复
+    * 备份被写坏的AOF文件
+    * 恢复：重启redis，然后重新加载
 
 6. AOF同步频率设置
 
@@ -757,15 +760,15 @@ public class SecKill_redisByScript {
 
 7. 优势
 
-   * 备份机制更稳健，第十数据概率低
-   * 可读的日志文本，通过操作AOF稳健，可以处理误操作
+    * 备份机制更稳健，第十数据概率低
+    * 可读的日志文本，通过操作AOF稳健，可以处理误操作
 
 8. 劣势
 
-   * 比起RDB占用更多的磁盘空间
-   * 恢复备份速度要慢
-   * 每次读写都同步的话，有一定的性能压力
-   * 存在个别Bug，造成恢复不能
+    * 比起RDB占用更多的磁盘空间
+    * 恢复备份速度要慢
+    * 每次读写都同步的话，有一定的性能压力
+    * 存在个别Bug，造成恢复不能
 
 ## 总结
 
@@ -853,9 +856,9 @@ public class SecKill_redisByScript {
 
   选择条件——
 
-  1. 选择优先级靠前的
-  2. 选择偏移量最大的
-  3. 选择runid最小的从服务
+    1. 选择优先级靠前的
+    2. 选择偏移量最大的
+    3. 选择runid最小的从服务
 
   优先级在redis.conf中默认：replica-priority 100，值越小优先级越高
 
@@ -902,7 +905,8 @@ Redis集群通过分区（partition）来提供一定程度的可用性：及时
 
    组合之前，需要确保所有redis实例启动后，nodes-xxxx.conf文件都生成正常
 
-   `redis-cli --cluster create --cluster-replicas 1 192.168.187.131:6379 192.168.187.131:6380 192.168.187.131:6381 192.168.187.131:6389 192.168.187.131:6390 192.168.187.131:6391` 启动集群模式**只能使用ip地址不能使用127.0.0.1**
+   `redis-cli --cluster create --cluster-replicas 1 192.168.187.131:6379 192.168.187.131:6380 192.168.187.131:6381 192.168.187.131:6389 192.168.187.131:6390 192.168.187.131:6391`
+   启动集群模式**只能使用ip地址不能使用127.0.0.1**
 
 ## 如何分配六个节点
 
@@ -998,10 +1002,10 @@ key可能会在某个时间点被超高并发地访问，是一种非常”热�
 1. 预先设置热门数据：在Redis高峰访问之前，把一些热门数据提前存入到redis里面，加大这些热门数据key的时长
 2. 实时调整：现场监控哪些数据热门，实时调整key的过期时长
 3. 使用锁：
-   1. 就是在缓存失效的时候（判断拿出来的值为空），不是立即去load db
-   2. 先使用缓存工具的某些带成功操作的返回值的操作（比如Redis的SETNX）去set一个mutex key
-   3. 当操作返回成功时，再进行load db的操作，并回设缓存，最后删除mutex key
-   4. 当操作失败，证明有线程再load db，当前线程睡眠一段时间再重试整个get缓存的方法
+    1. 就是在缓存失效的时候（判断拿出来的值为空），不是立即去load db
+    2. 先使用缓存工具的某些带成功操作的返回值的操作（比如Redis的SETNX）去set一个mutex key
+    3. 当操作返回成功时，再进行load db的操作，并回设缓存，最后删除mutex key
+    4. 当操作失败，证明有线程再load db，当前线程睡眠一段时间再重试整个get缓存的方法
 
 ## 缓存雪崩
 
@@ -1062,7 +1066,7 @@ Redis ACL是Access Control List（访问控制列表）的缩写，该功能允�
 
 ### 命令
 
-1. 
+1.
 
 | 命令       | 功能             |
 | ---------- | ---------------- |
@@ -1070,7 +1074,7 @@ Redis ACL是Access Control List（访问控制列表）的缩写，该功能允�
 
 ![image-20220507151133107](..\Picture\Redis\acl_list.png)
 
-2. 
+2.
 
 | 命令             | 功能                               |
 | ---------------- | ---------------------------------- |
@@ -1078,7 +1082,7 @@ Redis ACL是Access Control List（访问控制列表）的缩写，该功能允�
 | `acl cat string` | 加参数类型名可以查看类型下具体命令 |
 | `acl whoami`     | 查看当前用户                       |
 
-3. 
+3.
 
 ![image-20220507152441027](..\Picture\Redis\aclsetuser.png)
 
@@ -1102,7 +1106,8 @@ IO多线程其实指**客户端交互部分**的**网络IO**交互处理模块**
 
 **原理架构**
 
-Redis 6 加入多线程,但跟 Memcached 这种从 IO处理到数据访问多线程的实现模式有些差异。Redis 的多线程部分只是用来处理网络数据的读写和协议解析，执行命令仍然是单线程。之所以这么设计是不想因为多线程而变得复杂，需要去控制 key、lua、事务，LPUSH/LPOP 等等的并发问题。整体的设计大体如下:
+Redis 6 加入多线程,但跟 Memcached 这种从 IO处理到数据访问多线程的实现模式有些差异。Redis
+的多线程部分只是用来处理网络数据的读写和协议解析，执行命令仍然是单线程。之所以这么设计是不想因为多线程而变得复杂，需要去控制 key、lua、事务，LPUSH/LPOP 等等的并发问题。整体的设计大体如下:
 
 ![image-20220507152911695](..\Picture\Redis\IO多线程原理)
 
