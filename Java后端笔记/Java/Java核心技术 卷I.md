@@ -1265,6 +1265,59 @@ collection这一集合表达式必须是一个数组或者是一个实现了iter
   }
   ```
 
+CGLIB代理
+
+* 目标类
+
+  ```java
+  public class Test {
+      private final String a = "x";
+  
+      public void test() {
+          System.out.println(a);
+      }
+  }
+  ```
+
+* 代理类
+
+  ```java
+  public class ProxyTest {
+      private Object target;
+  
+      public ProxyTest(Object target) {
+          this.target = target;
+      }
+  
+      public Object getProxyInstance() {
+          Enhancer enhancer = new Enhancer();
+          enhancer.setSuperclass(Test.class);
+          enhancer.setCallback(new MethodInterceptor() {
+              @Override
+              public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+                  System.out.println("前置通知");
+                  Object invoke = methodProxy.invokeSuper(o, objects);
+                  System.out.println("后置通知");
+                  return invoke;
+              }
+          });
+          return enhancer.create();
+      }
+  }
+  ```
+
+* 测试类
+
+  ```java
+  public class Test {
+      public static void main(String[] args) {
+          Test test = new Test();
+          ProxyTest proxyTest = new ProxyTest(test);
+          Test proxyInstance = (Test) proxyTest.getProxyInstance();
+          proxyInstance.test();
+      }
+  }
+  ```
 
 # 异常、断言和日志
 
