@@ -1265,4 +1265,327 @@ collection这一集合表达式必须是一个数组或者是一个实现了iter
   }
   ```
 
-  
+
+# 异常、断言和日志
+
+## 处理错误
+
+* 用户期望在出错误时，程序能够采取合理的行为。如果由于出现错误而使得某些操作灭有完成，程序应该：
+  * 返回到一个安全状态，并能够让用户执行其他的命令
+  * 允许用户保存所有工作的结果，并以妥善的方式终止程序
+* 程序中可能存在的问题
+  * 用户输入错误，除了那些不可避免地键盘输错误外，有些用户不准收程序的要求
+  * 设备错误
+  * 物理限制，磁盘已满，可能用尽了所有可用地存储空间
+  * 代码错误，程序方法有可能没有正确地完成工作
+* 如果不能采用正常的途径完成他的任务，可以通过另外一个路径退出方法，这种情况下，方法并不返回任何值，而是抛出一个封装了错误信息的对象
+* 遇到异常后，这个方法将会立刻退出，并不返回正常值，也不会从调用这个方法的代码继续执行，取而代之的是，异常机制开始搜索能够处理这种异常状况的异常处理器
+
+### 异常分类
+
+* 异常对象都是派生于Throwable类的一个类实例，下一层立即分解为两个分支：Error和Exception
+* Error类层次结构描述了Java运行时的系统的内部错误和资源耗尽错误
+* Exception层次结构，又分为两个分支，一个分支派生于RuntimeException，另一个分支包含其他异常
+* 一般规则：由于变成错误的异常属于RuntimeException，如果程序本身没有问题，但是由其他错误导致的异常属于其他异常
+* Java语言规范将派生于Error类或RuntimeException类的所有异常称为非检查型异常，所有其他的异常称为检查性异常
+* 需要抛出异常的情况：
+  * 调用了一个抛出检查型异常的方法
+  * 检测到一个错误，并且利用throw语句抛出一个检查型异常
+  * 程序出现错误
+  * Java虚拟机或运行时库出现内部错误
+* 如果一个方法有可能抛出多个检查型异常类型，那么就必须在方法首部列出所有的异常类，每个异常类之间用逗号隔开
+* 不应该声明从RuntimeException继承的那些非检查型异常
+* 一个方法必须声明所有可能抛出的检查型异常，而非检查型异常要么在控制之外，要么从一开始就避免这种情况的发生
+
+### 如何抛出异常
+
+* 一旦方法抛出了异常，这个方法就不会返回到调用者，不必操心创建一个默认的返回值或错误码
+
+### 创建异常类
+
+* 创建异常类，需要定义一个派生于Exception的类，或者派生Exception的某个子类，自定义的这个类应该包含两个构造器，一个是默认的构造器，另一个是包含详细描述信息的构造器（超类Throwable的toString方法会返回一个字符串，其中包含这个详细信息）
+
+## 创建异常
+
+### 捕获异常
+
+* 如果发生了某个异常，但没有在任何地方捕获这个异常，程序就会终止，并在控制台上打印一个消息，其中包含这个异常的类型和一个堆栈轨迹
+
+* 要想捕获一个异常，需要设置try/catch语句块
+
+  ```java
+  try {
+      code
+  } catch (ExceptionType e) {
+      handler for this type
+  }
+  ```
+
+* 如果try语句块中的任何代码抛出了catch子句指定的一个异常类
+
+  * 程序将跳过try语句块的其余代码
+  * 程序将执行catch子句中的处理器代码
+
+* 如果try语句块中没有抛出任何异常，那么程序将跳过catch子句
+
+* 如果方法中的任意代码抛出了catch子句没有声明的一个异常类型，那么这个方法就会立即退出
+
+* 如果调用了一个抛出检查型异常的方法，就必须执行这个异常，或者继续传递这个异常
+
+* 一般来说，要捕获那些知如何处理的异常，而继续传播那些不知道怎么处理的异常
+
+* 如果想传播一个异常，就必须在方法的首部添加一个throws说明符，提醒调用者这个方法可能会抛出异常
+
+* 如果编写一个方法覆盖超累方法，而这个超类方法没有抛出异常，你就必须捕获你的方法代码中出现的每一个检查型异常
+
+* 不允许在子类的throws说明符中出现超类方法未列出的异常类
+
+### 捕获多个异常
+
+* 在一个try语句块中可以捕获多个异常类型，并对不同类型的异常做出不同的处理，要为每个异常类型使用一个单独的catch语句
+* 想要获得这个对象的更多信息，可以尝试使用e.getMessage()方法
+* 在Java7中，同一个catch子句中可以捕获多个异常类型（只有当捕获的异常类型彼此之间不存在子类关系时才需要这个特性）
+
+### 再次抛出异常与异常链
+
+* 可以在catch子句中抛出一个异常，通常希望改变异常的类型时胡这样做
+* 捕获到新抛出的异常时，可以使用getCause获取原始异常
+* 强烈建议使用这种包装技术，这样可以在子系统中抛出高层异常，而不会丢失原始异常的细节
+
+### finally子句
+
+* 代码抛出一个异常时，就会停止处理这个方法中剩余的代码，并退出这个方法
+* 不管是否有异常被捕获，finally子句中的diamagnetic都会执行
+
+### try-with-Resources语句
+
+* 在java7中提供了一种方法
+
+  ```java
+  try (Resource res = ...) {
+      work with res
+  }
+  ```
+
+  他将自动关闭try语句段中资源
+
+* 这个块正常退出时，或者存在一个异常时，都会调用close这个资源
+
+> * 在java9中，可以在try首部中提供之前声明的事实最终变量
+
+* try-with-Resources语句本身也可以youcatch子句，甚至还可以有一个finally子句，这些子句会在关闭资源之后执行
+
+### 分析堆栈轨迹元素
+
+* 堆栈轨迹是程序执行过程中某个特定点上所有挂起的方法调用的一个列表
+* 可以调用Throwable类的printStackTrace方法访问贵站轨迹的文本描述信息
+* 一种更灵活的方法是使用StackWalker类，它会生成要给StackWalker.StackFrame实例流，其中每个实例分别描述一个栈帧
+* 使用异常的技巧
+  * 异常处理不能代替简单测试
+  * 不要过分地细化异常
+  * 充分利用异常层次结构
+  * 不要压制异常
+  * 在检测错误时，“苛刻”总比放任好
+  * 不要羞于传递异常
+
+## 使用断言
+
+### 断言的概念
+
+* 使用常规的测试完毕后，这个代码还会一直保留在程序中，如果程序中含有大量这种检查，程序将会运行起来慢很多
+
+* 断言机制允许在测试期间向代码中插入一些检查，而在生产代码中会自动删除这些检查
+
+* assert关键字，有两种形式：
+
+  `assert condition;`
+
+  和
+
+  `assert condition : expression;`
+
+  如果结果为false，则抛出一个AssertionError异常，第二个表达式中会将expression传入AssertionError对象的构造器，并且转换成一个消息字符串
+
+### 启用和禁用断言
+
+* 在默认情况下断言是禁止的，可以在运行程序时用-enableassertions或-ea选项启用断言
+
+### 使用断言完成参数检查
+
+* 什么时候使用断言
+  * 断言失败是致命的，不可恢复的错误
+  * 断言检查只是在开发和测试阶段打开
+* 不应该使用断言向程序的其他部分通知发生了可恢复性的错误，或者，不应该利用断言与程序用户沟通问题
+* 断言只应该用于在测试阶段确定程序内部错误的位置
+
+## 日志
+
+* 日志API为了解决代码中随处出现的System.out方法
+  * 可以很容易的取消全部日志记录，或者仅仅取消某个级别以下的日志，而且可以很容易地再次打开日志开关
+  * 可以很简单地禁止日志记录，因此，将这些日志代码留在程序中的开销很小
+  * 日志记录可以被定向到不同的处理器
+  * 日志记录器和处理器都可以对记录进行过滤。过滤器可以根据过滤器实现器指定的标准丢弃那些无用的记录项
+  * 日志记录可以采用不同的方法格式化
+  * 应用程序可以使用多个日志记录器，它们使用与报名类似的有层次结构的名字
+  * 日志系统的配置有配置文件控制
+
+### 基本日志
+
+* 要完成简单的日志记录，可以使用全局日志记录器并调用其info方法
+
+  `Logger.getGlobal().info(...)`
+
+* 使用 `Logger.getGlobal().setLevel(Level.OFF)`将会取消所有日志
+
+### 高级日志
+
+* 可以调用getLogger方法创建或获取日志记录器
+
+  `private static final Logger myLogger = Logger.getLogger("top.mnsx")`
+
+* 与包名类似，日志记录器也具有层次结构，日志记录器的层次性更强
+
+* 日志等级有7级：
+
+  * SEVERE
+  * WARNING
+  * INFO
+  * CONFIG
+  * FINE
+  * FINER
+  * FINEST
+
+* 在默认情况下，实际上只记录前3个级别
+
+* 使用`logger.setLevel(Level.FINE)`，FINE以及所有更高级别的日志都会记录
+
+* 可以使用Level.ALL开启所有级别的日志记录，或者使用Level.OFF关闭所有级别的日志记录
+
+* 默认的日志记录将显示根据调用堆栈得出的包含日志调用的类名和方法名
+
+* 如果虚拟机对执行过程进行了优化，就得不到准确的调用信息
+
+* 可以使用logp方法获得调用类和方法的确切位置
+
+  `void logp(Level l, String className, String methodName, String message)`
+
+* 用来跟踪执行流的便利方法
+
+  `void entering(String className, String methodName)`
+  `void entering(String className, String methodName, Object param)`
+
+  `void entering(String className, String methodName, Object[] params)`
+
+  `void exiting(String className, String methodName)`
+
+  `void exiting(String className, String methodName, Object result)`
+
+* 记录日志的常见用途是记录那些预料之外的异常，可以使用下面两个便利方法在日志记录中包含异常的描述
+
+  `void throwing(String className, String methodName, Throwable t)`
+
+  `void log(Level l, String message, Throwable t)`
+
+### 修改日志管理器配置
+
+* 可以通过编辑配置文件来修改日志系统的各个属性，默认情况下，配置文件位于conf/logging.properties（或者在java9之前，位于jre/lib/logging.properties)
+
+* 想要使用另一个配置文件，就要将java.util.logging.config.file属性设置为哪个文件的位置，为此将要用命令启动应用程序
+
+  `java -Djava.utl.logging.config.file=configFile Main`
+
+* 想要修改默认的日志级别，就需要编辑配置文件，并修改以下命令行
+
+  `.level=INFO`
+
+* 可以通过日志记录器名后面追加后缀.level来指定自定义日志记录器的日志级别
+
+### 处理器
+
+* 与日志记录器一样，处理器也有日志级别，对于一个要记录的日志记录，他的日志级别必须高于日志记录器和处理器二者的阈值
+
+* 日志管理器配置文件将默认的控制台处理器的日志级别设置为`java.util.logging.ConsoleHandler.level=INFO`
+
+* 想要记录更低级别的日志，就必须修改配置文件中的默认日志记录器级别和处理器级别，另外还可以绕过配置文件，安装你自己的处理器
+
+  ```java
+  Logger logger = Logger.getLogger("top.mnsx");
+  logger.setLevel(Level.FINE);
+  logger.setUseParentHandlers(false);
+  ConsoleHandler handler = new ConsoleHandler();
+  handler.setLevel(Level.FINE);
+  logger.addHandler(handler);
+  ```
+
+* FileHandler是文件处理器，SocketHandler将记录发送到指定的主机和端口
+
+* 使用FileHandler，这些记录被发送到用户主目录的javan.log文件中，n是保证文件唯一的一个编号（windows在C:\Windows)
+
+  | 配置属性                                | 描述                                                         | 默认值                                                       |
+  | --------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+  | java.util.logging.FileHandler.level     | 处理器级别                                                   | Level.ALL                                                    |
+  | java.util.logging.FileHandler.append    | 控制处理器应该追加到一个已经存在的文件末尾，还是应该为每个运行的程序打开一个新文件 | false                                                        |
+  | Java.util.logging.FileHandler.limit     | 在打开另一个文件之前允许写入一个文件的近似最大字节数（0表示无限） | 在FileHandler类中为0（表示无限制）在默认的日志管理器配置文件中为50000 |
+  | java.util.logging.FIleHandler.pattern   | 日志文件名的模式                                             | %h/java%u.log                                                |
+  | java.util.logging.FileHandler.count     | 循环序列中的日志记录数量                                     | 1                                                            |
+  | java.util.logging.FileHandler.filter    | 要使用的过滤器类                                             | 不过滤                                                       |
+  | java.util.logging.FileHandler.encoding  | 要使用的字符编码                                             | 平台的编码                                                   |
+  | java.util.logging.FileHandler.formatter | 记录格式器                                                   | java.util.logging.XMLFormatter                               |
+
+* 日志记录文件模式变量
+
+  | 变量 | 描述                   |
+  | ---- | ---------------------- |
+  | %h   | 系统属性user.home的值  |
+  | %t   | 系统临时目录           |
+  | %u   | 用于解决冲突的唯一编号 |
+  | %g   | 循环日志的生成号       |
+  | %%   | %字符                  |
+
+### 过滤器
+
+* 在默认情况下，会根据日志记录的级别进行过滤，每个日志记录器和处理器都有一个可选的过滤器来完成附加的过滤，要定义一个过滤器，需要实现filter接口并定义以下方法
+
+  `boolean isLoggable(LogRecord record)`
+
+* 要想将一个过滤器安装到一个日志记录器或处理器中，只需要调用setFilter方法就可以，但是同一时刻最多只能有一个过滤器
+
+### 格式化器
+
+* 需要扩展Formatter类并覆盖`String format(LogRecord record)`方法
+* `String formatMessage(LogRecord record)`这个方法对记录中的消息部分进行格式化，将替换参数并应用本地化处理
+
+### 日志技巧
+
+* 对一个简单的应用选择一个日志记录器，可以把日志记录器命名为与主应用包一样的名字
+* 默认日志配置会把级别等于或高于INFO的所有消息记录到控制台，用户可以覆盖这个默认配置，但是过程非常复杂，最好在你的应用中安装一个更合适的默认配置
+* 所有的级别为INFO、WARNING和SEVERE的消息都将显示在控制台上将想要的日志消息设置为FINE级别是一个很好的选择
+
+## 调式技巧
+
+* 在自定义类中应该重构toString方法来显示this对象的状态
+
+* 可以在每一个类中放置一个单独的main方法，这样就可以提供一个单元测试桩，能够独立地测试类
+
+* 可议使用JUnit单元测试框架
+
+* 日志代理是一个子类对象，他可以截获方法调用，记录日志，然后调用超类中的方法
+
+* 利用Throwable类的printStackTrace方法，可以从任意的异常对象获得堆栈轨迹
+
+* 可以记录堆栈轨迹
+
+  ```java
+  StringWriter out = new StringWriter();
+  new Throwable().printStackTrace(new PrintWriter(out));
+  String description = out.toString();
+  ```
+
+* 在System.err中显示未捕获的异常的堆栈轨迹并不是一个理想的方法
+
+* 要想观察类的加载过程，启动java虚拟机时可以使用-verbose标记
+
+* -Xlint选项告诉编译器找出常见的代码问题
+
+* Java虚拟机增加了对Java应用程序的监控和管理支持，允许在虚拟机中安装代理来跟踪内存消耗、线程使用、类加载等情况
+
