@@ -1837,3 +1837,273 @@ CGLIB代理
   * WildcardType接口，描述通配符
   * ParameterizedType接口， 描述泛型类或接口类型
   * GenericArrayType接口，描述泛型数组
+
+# 集合
+
+## Java集合框架
+
+### 集合接口与实现分离
+
+* 与现代的数据结构类库的常见做法一样，Java集合类库也将接口与实现分离
+* 只有在构造集合对象时，才会使用具体的类，可以使用接口类型存放集合引用
+* 利用这种接口存放集合引用的方法，一旦改变了想法，就可以很轻松地使用另一种不同的实现
+
+### Collection接口
+
+* 在Java类库中，集合类的基本接口是Collection接口
+
+  ```java
+  public interface Collection<E> {
+      boolean add(E element);
+      Iterator<E> iterator();
+  }
+  ```
+
+### 迭代器
+
+* 迭代器可以依次访问集合中的元素
+
+  ```java
+  public interface Iterator<E> {
+      E next();
+      boolean hasNext();
+      void remove();
+      default void forEachRemaining(Consumer<? super E> action);
+  }
+  ```
+
+* for each循环可以处理任何实现了Iterable接口的对象，这个接口只包括一个抽象方法
+
+  ```java
+  public interface Iterable<E> {
+      Iterator<E> iterator();
+  }
+  ```
+
+* Collection接口扩展了Iterable接口，因此，对于标准类库中的任意集合都可以使用for each循环
+
+* 访问元素的顺序取决于集合类型
+
+  * ArrayList是从索引0开始，没迭代一次，索引值加1
+  * HashSet保证每个元素都能够被访问，但是访问顺序是随机的
+
+* 可以认为Java迭代器位于两个元素之间，当调用next时，迭代器就越过下一个元素，并返回刚刚越过的元素的索引
+
+* next方法与remove方法调用之间存在依赖性，如果调用remove之前没有调用next，将是不合法的，如果这样做，将会抛出一个IllegalStateException
+
+### 泛型实用方法
+
+* 由于Collection和Iterator都是泛型接口，这意味着你可以编写处理任何集合类型的实用方法
+* Java类库提供了一个类AbstractCollection，它保持基础方法size和iterator认为抽象方法，但是为实现者实现了其他例行方法
+
+## 集合框架中的接口
+
+* Java集合框架为不同类型的集合定义了大量接口
+
+  ![](D:\WorkSpace\Note\Java后端笔记\Java\集合框架的接口.jpg)
+
+* 访问List的两种方式
+
+  * 使用迭代器访问
+  * 使用一个整数索引来访问
+
+* Java6引入了接口NavigableSet和NavigableMap，其中包含了一些用于搜索和遍历有序集和映射的方法，TreeSet和TreeMap实现了这些接口
+
+## 具体集合
+
+| 集合类型        | 描述                                         |
+| --------------- | -------------------------------------------- |
+| ArrayList       | 可以动态增长和缩减的一个索引序列             |
+| LinkedList      | 可以在任何位置高效插入何删除的一个有序序列   |
+| ArrayDeque      | 实现为循环数组的一个双端队列                 |
+| HashSet         | 没有重复元素的无序集合                       |
+| TreeSet         | 一个有序集                                   |
+| EnumSet         | 一个包含枚举类型的集                         |
+| LinkedHashSet   | 一个可以记住元素插入次序的集                 |
+| PriorityQueue   | 允许高效删除最小元素的一个集合               |
+| HashMap         | 存储键值关联的一个映射                       |
+| TreeMap         | 键有序的一个映射                             |
+| EnumMap         | 键属于枚举类型的一个映射                     |
+| linkedHashMap   | 可以记住键值项添加次序的一个映射             |
+| WeakHashMap     | 值不会在别处使用时就可以被垃圾回收的一个映射 |
+| IdentityHashMap | 用==而不是用equals比较键的一个映射           |
+
+### 链表
+
+* 链表则是将每个对象存放在单独的链接中，每个连接存放着序列中下一个链接的引用
+* 在Java程序设计语言中，所有链表实际上都是双向链表的即每个连接还存放着其前驱的引用
+* 链表常常需要将元素插入到中间位置，ListIterator提供了add方法可以在遍历的过程中添加元素，另外ListIterator还允许反向遍历链表
+* ListIterator还提供了set方法用一个新元素替换调用next或previous方法返回的上一个元素
+* 为了避免发生并发修改异常：可以根据需要为一个集合关联多个迭代器，前提是这些迭代器只能读取集合，或者可以在关联一个能同时读写的迭代器
+* 有一个简单的方法可以检测到并发修改，集合可以跟踪更改操作的次数，每个迭代器都会为它负责的更改操作维护一个单独的更改操作数，每个迭代器方法的开始处，迭代器会检查他自己的更改操作是否与集合的更改操作数相等，如果不一致，就抛出一个ConcurrentModificationException
+* LinkedList也有一个get方法但是这是一种非常低效的方法，每次查找一个元素都要从列表头部重新开始搜索
+* 为list.listIterator(n)方法将返回一个迭代器，这个迭代器指向索引为n的元素前面的位置，但是效率也比使用next低
+* 使用链表的唯一理由尽可能地减少在列表中间插入或删除元素地开销，如果类表中中只有很少的几个元素，那么完全可以使用ArrayList
+
+### 数组列表
+
+* List接口有两种访问元素的方法
+  * 通过迭代器
+  * 通过get和set方法随机地访问每个元素
+
+### 散列集
+
+* 散列表为每个对象计算一个整数，称为散列码，散列码是由对象地实例字段得出一个整数，不同数据地对象将产生不同地散列码
+* 在Java中，散列表用链表数组实现，每个列表称为桶，想要查找表中对象地位置，就要先计算它的散列码，然后与桶地总数取余，所得到地结果就是保存这个元素地桶地索引
+* 有时候会遇到桶已经被填充地情况，这中现象被称为散列冲突，如果散列码合理地随机分布，痛的数目也足够大，需要比较的次数就会很少
+* 为了更多的控制散列表的性能，可以指定一个初始的桶数，桶数是指用于收集有相同散列值的桶的数目，如果插入到散列表中的元素太多，就会增加冲突数量，降低检索性能
+* 如果知道最终会有多少个元素要插入到散列表中，就可以设置桶数，通常将桶数设置为预计元素个数的75%-150%，标准库使用的桶数是2的幂默认值为16
+* 如果散列表太满，就需要再散列，要对散列表在散列，就需要创建一个桶数更多的表，并将所有元素插入到这个表中，然后丢弃原来的表
+* 装填因子可以确定何时对散列表进行再散列，散列因子默认为0.75，如果超过，表明表中已经填满了75%，就会自动再散列，新表中的桶数是原来的两倍
+
+### 树集
+
+* 树集是一个有序集合，可以以任意顺序将元素插入到集合中，对集合进行遍历时，值将自动的按照排序后的顺序呈现
+* TreeSet目前是根据红黑树数据结构完成的，每次将一个元素添加到树中时，都会将其放置再正确的排序位置上，因此迭代器总是以有序的顺序访问每个元素
+* 将一个元素添加到树中要比添加到散列表中慢，但是与检查数组或链表中的重复元素相比，使用树会快很多
+
+### 队列与双端队列
+
+* Java6中引入了Deque接口，ArrayDeque和LinkedList类实现了这个接口，这来给你个类都可以提供双端队列，其大小可以根据需要扩展
+
+### 优先队列
+
+* 优先队列中的元素可以按照任意的顺序插入，但是按照有序的顺序进行检索
+* 无论何时调用remove方法，总会得到当前优先队列中最小的元素
+* 优先队列使用了一个精巧且高效的数据结构，称为堆，对是一个可以自组织的二叉树，其添加和删除操作可以让最小的元素移动到根，而不必花费时间对元素进行排序
+* 优先队列的典型用法时任务调度，每个任务有一个优先级，任务以随即顺序添加到队列中
+
+## 映射
+
+### 基本映射操作
+
+* 散列映射对键进行散列，树映射根据键的顺序将元素组织为一个搜索树
+* 散列稍微快一些，如果不需要按照有序的顺序访问键，最好选择散列
+* 键必须是唯一的，不能对同一个键存放两个值。如果对同一个键调用两次put方法，第二个值就会取代第一个值
+
+### 更新映射条目
+
+* 更新映射条目时需要考虑如果键第一次出现的情况：
+  * 使用getOrDefault方法获取原先的值或者默认值，然后再更行到映射中
+  * 使用putIfAbsent只有当键原先存在（或者映射到null）时才会放入一个值
+  * 还可以通过merger方法，`xxx.merge(yyy, 1, lambda)`，将yyy和1关联，否则使用lambda表达式将原值和1进行操作后放入
+
+### 映射视图
+
+* 映射可以通过方法得到映射的视图，视图是实现了Collection接口或者某个子接口的对象
+* 可以得到三个视图：键集、值集合、键值对集合
+  * `Set<K> keySet()`
+  * `Collection<V> valus()`
+  * `Set<Map.Entry<k, v>> entrySet()`
+
+### 弱散列映射
+
+* 正常情况下，如果垃圾回收器发现某个特定的对象已经没有他人引用了，那就将其回收
+* 然而如果某个对象只能由WeakReference引用，垃圾回收器也会将其回收，但会将引用这个对象的弱引用放入一个队列中
+* WeakHashMap将周期性的检查队列，以便找出新添加的弱引用，一个弱引用放入队列就意味着这个键不再被他人引用，并且已经被回收，WeakHashMap将删除相关的映射条目
+
+### 链接散列集与映射
+
+* LinkedHashSet和LinkedHashMap类会记住插入元素项的顺序
+
+### 枚举集与映射
+
+* EnumSet是一个枚举类型元素集的高效实现
+
+* 由于枚举类型只有有限个实例，所以EnumSet内部用位序列实现
+* EnumSet没有公共的构造器，要使用静态工厂方法构造这个集
+
+### 标识散列映射
+
+* IdentityHashMap有特殊用途，在这个类中，键的散列值不是用hashcode函数计算的，而是用System.identityHashCode方法计算，这是Object.hashCode根据对象的内存地址计算散列码所使用的方法
+* 再对两个对象进行比较时，IdentityHashMap类使用==，而不是使用equals
+
+## 视图与包装器
+
+### 小集合
+
+> * Java9引入了一些静态方法，可以生成给定元素的集或列表，以及给定键值对的映射
+>
+>   `List<String> list = List.of(...)`
+>
+>   `Set<Integer> set = Set.of(...)`
+>
+>   `Map<String, Integer> map = Map.of(xxx, yyy)`
+>
+>   Map接口还提供了一个静态方法ofEntries方法，能够接收多个Map.Entry<k, v>对象
+>
+>   这些集合对象是不可修改的
+
+### 子范围
+
+* 可以通过subList方法来获得这个列表的子范围视图
+* 可以对子范围应用任何操作，而且操作会自动反映到整个列表中
+
+### 不可修改的视图
+
+* Colletions类还有几个方法，可以生成集合的不可修改视图
+* 可以使用8个方法获得不可修改视图
+  * `Collectons.unmodifiableCollection`
+  * `Collectons.unmodifiableList`
+  * `Collectons.unmodifiableSet`
+  * `Collectons.unmodifiableSortedSet`
+  * `Collectons.unmodifiableNavigableSet`
+  * `Collectons.unmodifiableMap`
+  * `Collectons.unmodifiableSortedMap`
+  * `Collectons.unmodifiableNavigableMap`
+* 不可修改的视图并不是集合本身不可更改，仍然可以通过集合的原始引用对集合进行修改，并且任然可以对集合的元素调用更改器方法
+
+### 同步视图
+
+* 类库设计者使用视图机制来确保常规集合是线程安全的，而没有实现线程安全的集合类
+
+### 检查型视图
+
+* 检查型视图用来对泛型类型而可能出现的问题提供调式支持
+
+* 检查型视图可以探测是否为指定类型
+
+  `LIst<String> safeString = Collections.checkedList(strings, String.class)`
+
+* 这个试图的add方法将检查插入的对象是否属于给定类型，如果不属于给定的类，就立即抛出一个ClassCastException
+
+## 遗留的集合
+
+### HashTable类
+
+* 与HashMap类一样，接口也基本相同，HashTable是同步的
+* 如果需要并发访问，则要使用ConcurrentHashMap
+
+### 枚举
+
+* Enumeration接口遍历序列
+
+### 属性映射
+
+* 属性映射是一个特殊类型的映射结构
+
+  * 键与值都是字符串
+  * 这个映射可以很容易地保存到文件以及从文件加载
+  * 有一个两级表存放默认值
+
+* 实现属性映射的Java平台类名为Properties
+
+* 从文件加载属性的方法是
+
+  ```java
+  FileInputStream in = new FileInputSteam("xxx.proerties");
+  Properties setting = new Properties();
+  setting.load(in);
+  ```
+
+* System.getProperties方法会生成Properties对象描述系统信息
+
+### 栈
+
+* Stack类扩展了Vector类，Vector类并不太令人满意
+
+### 位集
+
+* Java平台的BitSet类用于存储一个位序列
+* 如果需要高效地存储位序列，就可以使用位集
+* 使用位集比使用Booelan对象的ArrayList高效的多
