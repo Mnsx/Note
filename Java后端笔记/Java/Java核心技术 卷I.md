@@ -2311,5 +2311,316 @@ CGLIB代理
 
 ### 原子性
 
-* 假设对共享变量吃了赋值之外不做其他操作，那么可以将这些共享变量声明为volatile
+* 假设对共享变量除了赋值之外不做其他操作，那么可以将这些共享变量声明为volatile
+* java.util.concurrent.atomic包中有很多类使用了很高效的机器指令来保证其他操作的原子性
+  * AtomicInteger类提供了方法
+    * incrementAndGet和deCrementAndGet，它们分别以原子方法将一个整数进行自增或自减，这个方法将返回变化后的值，该操作不会间断
+    * 如果希望完成更复杂的更新，需要使用compareAndSet方法
+    * accumulateAndGet方法利用一个二元操作符来合并原子值和所有提供的参数
+
+* 如果有大量线程要访问相同的原子值，性能会大幅下降，因为乐观更新需要太多次重试，LongAdder和LongAccumulator类解决了这个问题
+* 如果预期可能存在大量竞争，只需要使用longAdder而不是AtomicLong
+  * 可以调用increment让计数器改变，或者调用add来增加一个值，调用sum来获取综合
+
+* 由于longAdder的increment方法为了提升性能不能够返回值，LongAccumulator将这种思想推广到累加操作
+  * 在构造器总，可以提供这个操作以及它的零元素，要加入新的值，可以调用accumulate方法，或者通过调用get来获得当前值
+
+
+### 死锁
+
+* 因为每一个线程要等待condition条件满足导致所有线程全部被阻塞，这种状态就是死锁状态
+* 不能将signalAll换成signal，因为signal只会随机接触一个线程的阻塞
+* 很遗憾，Java编程语言中没有任何东西可以避免或打破这种死锁，必须仔细设计程序，确保不会出现死锁
+
+### 线程局部变量
+
+* 使用ThreadLocal辅助类为各个线程提供各自的实例
+
+  `ThreadLocal<xxx> yyy = ThreadLocal.withInitial(() -> new xxxz())`
+
+* 通过xxx.get()方法可以得到这个实例对象
+
+* 在一个给定线程中首次调用get时，会调用构造器中的lambda表达式，在此之后，get方法会返回属于当前线程的那个实例
+
+### stop和suspend方法
+
+* 已被废弃
+* 通过调用stop会终止所有未结束的方法，当线程被终止，他会立即释放被它锁定的所有对象的锁，对象状态可能被破坏
+* 如果suspend挂起一个持有锁的线程，那么，在线程恢复运行之前这个锁是不可用的，如果调用suspend方法的线程视图获得同一个锁，那么线程死锁
+
+## 线程安全的集合
+
+### 阻塞队列
+
+* 很多线程问题可以使用一个或多个队列以优雅而安全的方式来描述，生产者线程向队列插入元素，消费者线程则获取元素
+
+* 当视图向队列添加元素而队列已满，或者想从队列移除元素而队列为空时，阻塞队列将导致线程阻塞，在协调多个线程之间的合作时
+
+* 阻塞队列是一个有用的工具，工作线程可以周期性地将中间结果存储在阻塞队列中
+
+  | 方法    | 正常动作               | 特殊情况下的动作                             |
+  | ------- | ---------------------- | -------------------------------------------- |
+  | add     | 添加一个元素           | 如果队列满，则抛出IllegalStatementException  |
+  | element | 返回队头元素           | 如果队列为空，则抛出NoSuchElementException   |
+  | offer   | 添加一个元素并返回true | 如果队列满，则返回false                      |
+  | peek    | 返回队头元素           | 如果队列为空，则返回null                     |
+  | poll    | 移除并返回队头元素     | 如果队列为空，则返回null                     |
+  | put     | 添加一个元素           | 如果队列满，则阻塞                           |
+  | remove  | 移除并返回队列元素     | 如果队列空，则抛出NoSuchElementException异常 |
+  | take    | 移除并返回队头元素     | 如果队列空，则阻塞                           |
+
+* 阻塞队列有三种使用方式
+
+  * 如果使用队列作为线程管理工具，将要用到put和take方法
+  * 当视图向满队列添加元素或者想从空队列得到队头元素时，add、remove和element操作回抛出异常
+  * 在一个多线程程序中，队列可能会在任意时候变空或变满，因此，应当使用offer、poll和peek方法作为替代，如果不能完成任务，这些方法只是给出一个错误提示而不会抛出异常
+
+* offer、poll方法可以添加超时操作
+
+  `x.offer(y, z, TimeUnit.MILLISECONDS)`
+
+* java.util.concurrent包提供了阻塞队列的几个变体
+
+  * 默认情况下，LinkedBlockingQueue的容量没有上界，但是也可以选择指定一个最大容量
+  * LinkedBlockingDeque是一个双端队列
+  * ArrayBlockingQueue在构造时需要指定容量，并且返回要给可选参数来指定是否需要公平性，若设置公平参数， 那么等待了最长时间的线程会优先得到处理，通常公平性会降低性能，只有在确实非常需要时才使用公平参数
+  * PriorityBlockingQueue是一个优先队列，而不是先进先出队列，元素按照它们的优先级顺序移除，这个队列没有容量上限，但是如果队列为空的，获取元素的操作会阻塞
+    * getDelay方法返回对象剩余的延迟，负值表示延迟已经结束，严肃只有在延迟结束的情况下才能从DelayQueue移除，还需要实现compareTo方法
+  * Java7增加了一个TransferQueue接口，允许生产者线程等待，直到消费者准备就绪可以接收元素，生产者调用`x.transfer(item)`这个调用会阻塞，直到另一个线程将元素删除，LinkedTransferQueue类实现了这个接口
+
+### 高效的映射、集和队列
+
+* java.util.concurrent包提供了映射、有序集、队列的高效实现：ConcurrentHashMap、ConcurrentSkipListMap、ConcurrentSkipListSet和ConcurrentLinkedQueue
+* 与大多数集合不同，这些类的size方法不一定在常量时间内完成操作，确定这些集合的当前大小通常需要遍历
+* 集合返回弱一致性的迭代器，这意味着迭代器不一定能反映出它们构造之后的所有更改，但是，它们不会将同一值返回两次，也不会抛出ConcurrentModificationException异常
+
+### 映射条目的原子更新
+
+* Java提供了一些新方法，可以更方便地完成原子更新，调用compute方法时可以提供一个键和一个计算新值的函数，这个函数接收键和相关联的值，它会计算新值
+* computeIfPresent和computeIfAbsend方法，它们分别只在已经有原值的情况下计算新值或者旨在没有原值的情况下计算新值
+* merge方法有一个参数表示键不存在时使用的初始值。否则，就会调用你提供的函数来结合原值和初始值
+
+### 对并发散列映射的批操作
+
+* 对于并发散列映射有三类操作
+
+  * search——为每个键或值应用一个函数，知道函数生成一个非null的结果，然后搜索终止，返回这个函数的结果
+  * reduce——组合所有键或值，这里要使用所提供的一个累加函数
+  * forEach——为所有键或值应用一个函数
+
+* 每个操作都有四个版本
+
+  * operationKeys：处理键
+  * operationValues：处理值
+  * operation：处理键和值
+  * operationEntries：处理Map.Entry对象
+
+* 对上述各个操作，需要指定一个参数化阈值，如果映射包含的元素多余这个阈值，就会并行完成批操作
+
+  * search方法
+
+    ```java
+    U searchKeys(long threhold, BiFunction<? super K, ? extends U> f);
+    U searchValues(long threshold, BiFunction<? super V, ? extends U> f);
+    U search(long threshold, BiFunction<? super K, ? super V, ? extends U> f);
+    U searchEntries(long threshold, BiFunction<Map.Entry<K, v>, ? extends U> f);
+    ```
+
+  * forEach方法
+
+    * 第一种形式只对各个映射条目应用一个消费者函数
+    * 第二种形式还有一个额外的转换器函数作为参数，要先应用这个函数，其结果会传递到消费者，转换器可以作为一个过滤器。只要转换器返回null，这个值将会被跳过
+
+  * reduce操作用一个累加函数组合其输出
+
+    * 可以提供一个转换器函数，同样可以作为一个过滤器，通过返回null来排除不想要的输入
+    * 对于int、long、double输出还有相应的特殊化操作，分别有后缀ToInt、ToLong和ToDouble。需要把输入转换为一个基本类型值，并指定一个默认值和一个累加器函数，映射为空时返回默认值
+
+### 并发集视图
+
+* 静态newKeSet方法会生成一个Set<K>，这实际上是ConcurrentHashMap的一个包装器
+* ConcurrentHashMap还有第二个keySet方法，它包含一个默认值，为集增加元素时可以使用这个方法
+
+### 写数组的拷贝
+
+* CopyWriteArrayList和CopyOnWriteArraySet是线程安全安全的，其中所有更改器会创建底层数组的一个副本
+
+### 并行数组算法
+
+* Arrays类提供了大量并行化操作
+* 静态Arrays。parallerSort方法可以对一个基本类型值或对相关的数组排序，可以提供一个Comparator
+* parallelSetAll方法会用由一个函数计算得到的值填充一个数组
+* parallelPrefix方法，他会用一个给定结合操作的相应前缀的累加结果替换各个数组元素
+
+##  任务和线程池
+
+* 线程池中包含许多准备运行的程序，为线程池提供一个Runnable，就会有一个线程调用run方法。当run方法退出时，这个线程不会死亡，而是留在池中准备为下一个请求提供服务
+
+### Callable与Future
+
+* Runnable封装一个异步运行的任务，可以把它想象成一个没有参数和返回值的异步方法
+
+* Callable与Runnable类似，但是有返回值，Callable接口是一个参数化的类型，只有一个方法call
+
+* 类型参数时返回值类型
+
+* Future保存异步计算的结果
+
+  ```java
+  V get();
+  V get(long timeout, TimeUnit unit);
+  void cancel(boolean mayInterrupt);
+  boolean isCancelled();
+  boolean isDone();
+  ```
+
+  * 第一个get方法的调用会阻塞，直到计算完成
+  * 第二个get方法也会阻塞，不过如果在计算完成之后调用超时，会抛出一个TimeoutException异常
+  * 如果运行该计算的线程被中断，这两个方法将抛出InterruptedException
+  * 如果计算已经完成，那么get方法立即返回
+  * 如果计算还在进行，isDone方法返回false，如果已经完成，则返回true
+  * 可以使用cancel方法取消计算，如果计算还没有开始 ，它会被取消而且不再开始，如果正在进行，那么如果mayInterrupt参数为true，他就会被中断
+
+* 执行Callable的一种方法是使用FutureTask，它实现了Future和Runnable接口，所以可以构造一个线程来运行这个任务
+
+  ```java
+  Callable<Integer> task = ...;
+  FutureTask<Integer> futureTask = new FutureTask<>(task);
+  Thread t = new Thread(futureTask);
+  t.start();
+  ...
+  Integer result = futureTask.get();
+  ```
+
+* 最常见的情况是，将一个callable传递到一个执行器
+
+### 执行器
+
+* 执行器类有许多静态工厂方法，用来构造线程池
+
+  | 方法                             | 描述                                                         |
+  | -------------------------------- | ------------------------------------------------------------ |
+  | newCachedThreadPool              | 必要时创建新线程；空闲线程会保留60秒                         |
+  | newFixedThreadPool               | 池中包含固定数目的线程；空闲线程会一直保留                   |
+  | newWorkStealingPool              | 一种适合“fork-join”任务的线程池，其中复杂的任务会分解为更简单的任务，空闲线程会“密取”较简单的任务 |
+  | newSingleThreadExecutor          | 只有一个线程的“池”，会顺序地执行所提交的任务                 |
+  | newScheduledThreadPool           | 用于调度执行的固定线程池                                     |
+  | newSingleThreadScheduledExecutor | 用于调度执行单线程“池”                                       |
+
+* 如果线程生存期很短，或者大量时间都在阻塞，那么可以使用一个缓存线程池
+
+* 为了得到最优的运行速度，并发线程数等于处理器内核数，这种情况下，就应当使用固定线程池，即并发线程总数有一个上限
+
+*  单线程执行器对于性能分析很有帮助，如果临时用一个单线程池途欢缓存或固定线程池，就能测量不适用并发的情况下应用的运行速度会慢多少
+
+* 可以使用submit方法将Runnable或Callable对象提交给ExecutorService
+
+  ```java
+  Future<T> submit(Callable<T> task);
+  Future<T> submit(Runnable task);
+  Future<T> submit(Runnable task, T result);
+  ```
+
+  * 调用submit时，会得到一个Future对象，可用来得到结果或者取消任务
+  * 第二个submit方法返回一个看起来很奇怪的Future<?>，可以使用一个对象来调用isDone、cancel或isCancelled，但是get方法在完成的时候只是简单地返回null
+  * 第三个submit方法也会生成一个Future，他的get方法在完成的时候返回指定的result对象
+
+* 使用完一个线程池时，调用shutdown，这个方法启动线程池的关闭序列。被关闭的执行器不再接受新的任务，当所有任务都完成时，线程池中的线程死亡
+
+* 另一个方法是调用shutdownNow，线程池会取消所有尚未开始的任务
+
+* 使用连接池的过程
+
+  * 调用Executors类的静态方法newCachedThreadPool或newFixedThreadPool
+  * 调用submit提交Runnable或Callable对象
+  * 保存好返回的Future对象，以便得到结果或者取消任务
+  * 当不想再提交任何任务时，调用shutdown
+
+### 控制任务组
+
+* invokeAny方法提交一个Callable对象集合的所有对象，并返回某个已完成任务的结果
+* invokeAll方法提交一个Callable对象集合中的所有对象，这个方法会阻塞，直到所有任务都完成，并返回表示所有任务答案的一个Future对象列表
+* 在for循环中，第一个result.get()调用会阻塞，直到第一个结果可用，如果所有任务几乎同时完成，这不会有问题，不过，很有必要按照计算出结果的顺序得到这些结果
+
+### fork-join框架
+
+* 要采用框架可用的一种方式完成这种递归计算，需要提供一个扩展RecursiveTask<T>的类或者提供一个扩展RecursiveAction的类
+* 再覆盖compute方法来生成并调用子任务
+* fork-join框架主要思想是将一个大的任务分解成小的任务
+* 在后台，fork-join框架使用了一种有效的智能方法来平衡可用线程的工作负载，这种方法称为工作密取
+
+## 异步计算
+
+### 可完成Future
+
+* 使用Future对象时，需要调用get来获得值，这个方法会阻塞，直到值可用
+
+* CompletableFutrue类是心啊了Future接口，它提供了获得结果的另一种机制，需要注册一个回调，一旦结果可用，就会利用这个结果调用这个回调
+
+* 可以通过调用CompletableFuture.supplyAsync方法获取一个CompletableFuture并异步运行任务
+
+  ```java
+  public CompletableFuture<xxx> yyy(...) {
+     return CompletableFuture.supplyAsync(() -> {
+         ...
+     }, executor);
+  }
+  ```
+
+* 如果省略执行器，任务会在意给默认值星期（ForkJoinPool.commonPool()返回的执行器）上运行
+
+* CompletableFuture可以采用两种方式完成
+
+  * 得到一个结果
+  * 有一个未捕获的异常
+
+* 要处理这两种情况，可以使用whenComplete方法
+
+  ```java
+  f.whenComplete((s, t) -> {
+      if (t == null) {
+          ...
+      } else {
+          ...
+      }
+  })
+  ```
+
+### 组合可完成Future
+
+* 非阻塞调用通过回调来实现
+
+* CompletableFuture类提供了一种机制来解决问题，可以将异步任务组合成一个处理管线
+
+* thenApply方法不会阻塞，它会返回另一个future
+
+  | 方法              | 参数                      | 描述                                   |
+  | ----------------- | ------------------------- | -------------------------------------- |
+  | thenApply         | T -> U                    | 对结果应用一个函数                     |
+  | thenAccept        | T -> void                 | 类似于thenApply，不过结果为void        |
+  | thenCompose       | T -> CompletableFuture<U> | 对结果调用函数并执行返回的future       |
+  | handle            | (T, Throwable) -> U       | 处理结果或错误，生成一个新结果         |
+  | whenComplete      | (T, Throwable) -> void    | 类似于handle，不过结果为void           |
+  | exceptionally     | Throwable -> T            | 如果超时，生成给定值作为结果           |
+  | completeOnTimeout | T, long, TimeUnit         | 如果超时，生成给定值作为结果           |
+  | orTimeout         | long, TimeUnit            | 如果超时，生成一个TimeOutException异常 |
+  | thenRun           | Runnable                  | 执行Runnable，结果为void               |
+
+  | 方法           | 参数                                 | 描述                                     |
+  | -------------- | ------------------------------------ | ---------------------------------------- |
+  | thenCombine    | CompletableFuture<U>， （T, U) -> V  | 执行来给你个动作并用给定函数组合结果     |
+  | thenAcceptBoth | CompletableFuture<U>, (T, U) -> void | 与thenCombine类似，不过结果为void        |
+  | runAfterBoth   | CompletableFuture<U>, Runanble       | 两个都完成后执行runnable                 |
+  | applyToEither  | CompletableFuture<U>, T -> V         | 得到其中一个的结果时，传入给定的函数     |
+  | acceptEither   | CompletableFuture<U>, T -> void      | 与applyToEither类似，不过结果为void      |
+  | runAfterEither | CompletableFuture<U>, Runnable       | 其中一个完成后执行runnable               |
+  | static allOf   | CompletableFuture<U>...              | 所有给定future都完成后完成，结果为void   |
+  | static anyOf   | CompletableFuture<U>...              | 任意给定future都完成后则完成，结果为void |
+
+## 进程
+
+* Process类在一个单独的操作系统进程种执行一个命令，允许我们与标准输入、输出和错误流交互
+* ProcessBuilder类则允许我们配置Process对象
+
+
 
