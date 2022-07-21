@@ -273,3 +273,453 @@
 * close方法会关闭一个输出流的同时还会冲刷用于该输出流的缓冲区
 
 * 还可以使用flush方法来人为地冲刷这些输出
+
+### 完整的流家族
+
+* 输入流与输出流的层次结构
+
+  ![](D:\WorkSpace\Note\Java后端笔记\Java\输入流与输出流的层次结构.jpg)
+
+* Reader和Writer的层次结构
+
+  ![](D:\WorkSpace\Note\Java后端笔记\Java\Reader和Writer的层次结构.jpg)
+
+* InputStream、OutputStream、Reader和Writer都实现了Closeable接口
+
+* outputStream和Writer还实现了Flushable接口
+
+* Readable接口只有一个方法
+
+  `int read(CharBuffer cb)`
+
+  CharBuffer类拥有按顺序和随机地进行读写访问的方法，它表示一个内存中的缓冲区或者一个内存映像的文件
+
+* Appendable接口有两个用于添加单个字符和字符序列的方法
+
+  `Appendable append(char c)`
+
+  `Appendable append(CharSequence s)`
+
+  CharSequence接口描述了一个char值序列的基础属性，String、CharBuffer、StringBuilder和String Buffer都实现了它
+
+### 组合输入/输出流过滤器
+
+* FileInputStream和FileOutputStream可以提供附着在一个磁盘文件上的输入流和输出流，而你只需向其构造器提供文件名或文件的完整路径名
+* 某些输入流可以从文件和其他更外部的位置上获取字节，而其他的输入流可以将字节组装到更有用的数据结构中
+* 可以通过嵌套过滤器来添加多重功能，相比之下，请求一个数据块并将其至于缓冲区中会显得更加高效
+* 当读入输入时，可以预览下一个字节，Java提供了用于刺目的的PushbackInputStream
+* Java必须将多个流过滤器组合起来，这种混合并匹配过滤器类以构建真正有用的输入/输出流序列的嗯呢力，将带来极大的灵活性
+
+### 文本输入与输出
+
+* OutputStreamWriter类将使用选定的字符编码方式，把Unicode码元的输出流转换为字节流，而InputStreamReader类将包含字节的输入流转换为可以产生Unicode码元的读入器
+* 输入流读入其会假定使用主机系统所使用的默认字符编码方式，所以应该在InputStreamReader的构造器中选择一种具体的编码方式
+
+### 如何写出文本输出
+
+* 对于文本输出，可以使用PrintWriter，这个类拥有以文本格式打印字符串和数字的方法，为了打印文件，需要用文件名和字符编码方式构造一个PrintStream对象
+
+  `PrintWriter out = new PrintWriter("xxx.txt", StandardCharsets.UTF_8)`
+
+* 为了输出到打印写出器，需要使用与使用System.out相同的print、println和printf方法
+
+* 如果写出器设置为自动冲刷模式，那么只要println被调用，缓冲区中的所有字符都会被发送倒塌的目的地
+
+* 默认情况下，自动冲刷机制是禁用的，你要通过使用PrintWriter(Writer writer, booolean autoFlush)来启用或禁用自动冲刷机制
+
+* print方法不抛出异常，你可以调用checkError方法来查看输出流是否出现了某些错误
+
+### 如何读入文件输入
+
+* 最简单的处理任何文本的方式就是使用Scanner类
+
+* 想要将一个文件一行行地读入，那么可以调用
+
+  `List<String> lines = Files.readAllLines(path, charset)`
+
+* 如果文件太大，那么可以将行惰性处理为一个Stream<String>对象
+
+  ```java
+  try (Stream<String> lines = Files.lines(path, charset)) {
+  	...
+  }
+  ```
+
+* 还可以通过BufferedReader类进行文本输入处理，它的readLine方法会产生一行文本，或者在无法获得更多输入时返回null
+
+* BufferedReader类又有一个lines方法，可以产生一个Stream<String>对象，但是BufferedReader没有用于任何读入数字的方法
+
+### 字符编码方式
+
+* 输入和输出流都是用于字节序列的，但是在许多情况下，我们希望操作的是文本
+
+* Java针对字符使用的是Unicode标准
+
+* 每个字符或编码点都具有一个21位的整数，有多种不同的字符编码方式，也就是说，将这些21位数字包装成字节的方式有多种
+
+* 最常见的编码方式就是UTF-8，它会将每个Unicode编码点编码位1到4各字节的序列
+
+* 另一个种常见的编码方式是UTF-16，它会将每个Unicode编码点编码为1个或两个16位值
+
+* StandardCharsets类具有类型为Charset的静态变量，用于表示每种Java虚拟机都必须支持的字符编码方式
+
+* 为了获取编码方式，可以使用静态方法forName方法
+
+  `Charset shiftJIS = Charset.forName("Shift-JIS")`
+
+## 读写二进制数据
+
+### DataInput和DataOutput接口
+
+* DataOutput接口定义了下面的以二进制格式写数组、字符、Boolean值和字符串的方法
+
+  | writeChars | writeFloat   |
+  | ---------- | ------------ |
+  | writeByte  | writeDouble  |
+  | writeInt   | writeChar    |
+  | writeShort | writeBoolean |
+  | writeLong  | writeUTF     |
+
+* DataInput接口中定义的下列方法来读回数据
+
+  | readInt   | readDouble  |
+  | --------- | ----------- |
+  | readShort | readChar    |
+  | readLong  | readBoolean |
+  | readFloat | readUTF     |
+
+* DataInputStream类实现了DataInput接口，为了从文件中读入二进制数据看，可以将DataInputStream与某个字节源相组合
+
+### 随机访问文件
+
+* RandomAccessFile类可以在文件中的任何位置查找或写入数据
+* 你可以打开一个随机访问文件，只用于读入或者同时用于读写，你可以通过使用字符串“r“或者”rw“作为构造器的第二个参数来指定这个选项
+* 当你将已有文件作为RandomAccessFile打开时，这个文件并不会被删除
+* 随机访问文件有一个表示下一个将被读入或写出的字节所处位置的文件指针，seek方法可以用来将这个文件指针设置到文件中的任意字节位置，seek的参数是一个long类型的整数，它的值位于0到文件按照字节来度量的长度之间
+* getFilePointer方法返回文件指针的当前位置
+
+### ZIP文档
+
+* ZIP文档以压缩格式存储了一个或多个文件，每个ZIP文档都有一个头包含诸如每个文件名字和所使用的压缩方法等信息
+* 在Java中，可以使用ZipInputStream来读入ZIP文档，你可能需要浏览文档中每个单独的项，getNextEntry方法就可以返回一个描述这些项的ZipEntry类型对象，该方法会从流中读入数据直至末尾，实际上这里的末尾是指正在读入的项的末尾，人或调用closeEntry来读入下一项，在读入最后一项之前，不要关闭zip
+* 可以调用putNextEntry方法来写出新文件，并将文件数据发送daoZIP输出流中
+
+## 对象输入/输出流与序列化
+
+### 保存和加载序列化对象
+
+* 为了保存对象数据，首先需要打开一个ObjectOutputStream独享
+
+  `OutputStream out = new ObjectOutputStream(new FileOutputStream("xxx.dat"))`
+
+* 为了保存对象i，可以直接使用ObjectOutputStream的writeObject方法
+
+  `out.writeObject(xxx)`
+
+* 为了将对象读回，首先需要获得一个ObjectInputStream对象
+
+  `InputStream in = new ObjectInputStream(new FileInputStream("xxx.data"))`
+
+* 然后调用readObject方法以这些对象被写出时的顺序获得他们
+
+  `Object o = in.readObject()`
+
+* 对希望在对象输出流中存储或从对象输入流中恢复的所有类都应进行一下修改，这个类必须实现Serilizable接口
+
+* 当对象被重新加载时，他可能占据的是与原来完全不同的内存地址
+
+* 每个对象都是用一个序列号保存的，这就是这个机制之所以称为对象寻猎话的原因
+
+  * 对你遇到的每一个对象引用都关联一个序列号
+  * 对于每个对象，当第一次遇到时，保存其对象那数据到输出流中
+  * 如果某个对象之前已经被保存过，那么只写出“与之前保存过的序列号为X的对象相同”
+
+* 读回对象时，整个过程是反过来的
+
+  * 对于对象输入流中的对象，在第一次遇到其序列号时，构造它，并使用流中数据来初始化它，然后记录这个顺序号与新对象之间的关联
+  * 当遇到“与之前保存过的序列号为x的对象相同”这一标记时，获取与这个序列号相关联的对象引用
+
+## 操作文件
+
+### Path
+
+* Path表示的是一个目录名序列，其后还可以跟着一个文件名
+* 路径中的第一个部件可以是根部件，而允许访问的根部件取决于文件系统
+* 以根部件开始的路径时绝对路径，否则，就是相对路径
+* 静态的Paths.get方法接受一个或多个字符串，并将它们用默认文件系统的路径分隔符连接起来
+* 组合或解析路径是司空见惯的操作，调用path.resolve(x)将按照下列规则返回一个路径
+  * 如果x是绝对路径，则结果就是x
+  * 否则，根据文件系统的规则，将path后面跟着x作为结果
+
+### 读写文件
+
+* Files类可以使得普通文件操作变得快捷
+
+  `byte[] bytes = Files.readAllBytes(path)`
+
+* 如果希望将文件当作寒旭烈读入，那么可以调用
+
+  `List<String> lines = Files.readAllLines(path, charset)`
+
+* 希望写出一个字符串到文件中，可以调用
+
+  `Files.writeString(path, content, charset)`
+
+* 项指定文件追加内容，可以调用
+
+  `Files.wirte(path, content.getBytes(charset), StandardOpenOption.APPEND)`
+
+* 将一个行的集合写出到文件中
+
+  `Files.write(path, lines,charset)`
+
+### 创建文件和目录
+
+* 创建新目录可以调用
+
+  `Files.createDirectory(path)`
+
+* 要求路径中除最后一个部件外，其他部分都必须是已存在的
+
+* 要创建路径中的中间目录应该使用
+
+  `Files.createDirectories(path)`
+
+* 可以使用下面的语句创建一个空文件
+
+  `Files.createFile(path)`
+
+* 如果文件已经存在了，那么这个调用就会抛出异常，检查文件是否存在和创建文件是原子性的，如果文件不存在，该文件就会被创建，并且其他程序在此过程中是无法执行文件创建操作的
+
+### 复制、移动和删除文件
+
+* 将文件从一个位置复制到另一个位置可以直接调用
+
+  `Files.copy(fromPath, toPath)`
+
+* 移动文件可以调用
+
+  `Files.move(fromPath, toPath)`
+
+* 如果目标路径已经存在，那么复制或移动将失败。
+
+* 如果想要覆盖已有的目标路径，可以使用REPLACE_EXISTING选项
+
+* 如果想要复制所有问及那的属性，可以使用COPY_ATTRIBUTES选项
+
+* 可以通过ATOMIC_MOVE选项来讲移动操作定义为原子性，这样就可以保证要么操作成功完成，要么源文件继续保持在原来的位置
+
+* 删除文件可以调用
+
+  `Files.delete(path)`
+
+* 如果要删除的文件不存在，这个方法就会抛出异常，因此，可转而使用下面的方法
+
+  `boolean deleted = Files.deleteIfExists(path)`
+
+  该删除方法还可以用来移除空目录
+
+* 用于文件操作的标准选项
+
+  | 选项               | 描述                                                         |
+  | ------------------ | ------------------------------------------------------------ |
+  | StandardOpenOption | 与newBufferedWriter、newInputStream、newOutputStream、write一起使用 |
+  | READ               | 用于读取而打开                                               |
+  | WRITE              | 用于写入而打开                                               |
+  | APPEND             | 如果用于写入而打开，那么在文件末尾追加                       |
+  | TRUNCATE_EXISTING  | 如果用于写入而打开，那么移除已有内容                         |
+  | CREATE_NEW         | 创建新文件并且在文件已存在情况下会创建失败                   |
+  | CREATE             | 自动在文件不存在的情况下创建新文件                           |
+  | DELETE_ON_CLOSE    | 当文件被关闭时，尽可能地删除该文件                           |
+  | SPARSE             | 给文件系统一个提示，表示该文件是稀疏的                       |
+  | DSYNC或SYNC        | 要求对文件数据\|数据和原数据的每次更新都必须同步地写入到存储设备中 |
+  | StandardCopyOption | 与copy和move一起使用                                         |
+  | ATOMIC_MOVE        | 原子性地移动文件                                             |
+  | COPY_ATTRIBUTES    | 复制文件的属性                                               |
+  | REPLACE_EXISTING   | 如果目标已存在，则替换他                                     |
+  | LinkOption         | 与上面所有方法以及exists、isDirectory、isRegularFIle等一起使用 |
+  | NOFOLLOW_LINKS     | 不要跟踪符号链接                                             |
+  | FileVisitOption    | 与find、walk、walkFileTree一起使用                           |
+  | FOLLOW_LINKS       | 跟踪符号链接                                                 |
+
+### 获取文件信息
+
+* 下面的静态方法都将返回一个boolean值，表示检查路径的某个属性结果
+
+  * exists
+  * isHidden
+  * isReadable, isWritable, isExecutable
+  * isRegularFile, isDirectory, isSymbolicLink
+
+* size方法将返回文件的字节数
+
+* getOwner方法将文件的拥有者作为一个实例返回
+
+* 所有文件系统都会报告一个基本属性集，它们被封装在BasicFileAttributes接口中，这些属性与上述信息有部分重叠
+
+* 基本文件属性包括：
+
+  * 创建文件、最后一次访问以及最后一次修改文件的时间，这些时间都表示成java.nio.file.attribute.FileTime
+  * 文件是常规文件、目录还是符号链接，异或这三者都不是
+  * 文件尺寸
+  * 文件主键，这是某种类对象，具体所属类与文件系统相关，有可能是文件的唯一标识符，也可能不是
+
+* 获取文件属性可以调用
+
+  `BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class)`;
+
+### 访问目录中的项
+
+* 静态的Files.list方法会返回一个可以读取目录中各个项的Stream<path>对象
+* 目录是被惰性读取的，这使得处理具有大量项的目录可以变得更高效
+* 为了处理目录中的所有子目录，需要使用File.walk方法
+* 可以通过调用File.walk(pathToRoot, depth)来限制想要访问的树的深度
+
+### 使用目录流
+
+* 使用Files.newDirectoryStream对象，可以对遍历过程进行更加细粒度的控制，它会产生一个DirectoryStream
+
+* 它是Iterable的子接口，以哦那次可以在增强的for循环中使用目录流
+
+* 可以用glob模式来过滤文件
+
+  | 模式  | 描述                                     |
+  | ----- | ---------------------------------------- |
+  | \*    | 匹配路径组成部分中0个或多个字符          |
+  | \*\*  | 匹配跨目录边界的0个或多个字符            |
+  | ?     | 匹配一个字符                             |
+  | [...] | 匹配一个字符集合，可以使用连线符和取反符 |
+  | {...} | 匹配由逗号隔开的多个可选项之一           |
+  | \     | 转义上述任意模式中的字符以及\字符        |
+
+* 如果想要访问某个目录的所有子孙成员，可以转而调用walkFileTree方法，并向其传递一个FileVisitor类型的对象，这个对象会得到下列通知
+
+  * 在遇到一个文件或目录时
+
+    `FileVisitResult visitFile(T path, BasicFileAttributes attrs)`
+
+  * 在一个目录被处理前
+
+    `FileVisitResult preVisitDirectory(T dir, IOException ex)`
+
+  * 在一个目录被处理后
+
+    `FileVisitResult postVisitDirecotry(T dir, IOException ex)`
+
+  * 在视图访问文件或目录时发生错误
+
+    `FileVisitResult visitFileFailed(path, IOEXception)`
+
+  上述情况还可以指定是否希望执行下面操作
+
+  * 继续访问下一个文件：FileVisitResult.CONTINUE
+  * 继续访问，但是不在访问这个目录下的任何项：FileVisitResult.SKIP_SUBTREE
+  * 继续访问，但是不在访问这个文件的兄弟文件：FileBisitResult.SKIP_SIBLINGS
+  * 终止访问：FileVisitResult.TERMINATE
+
+### ZIP文件系统
+
+* Paths类会在默认文件系统中查找路径，也可以支持在其他文件系统中使用，其中最有用的之一就是ZIP文件系统
+
+  `FileSystem fs = FileSystems.newFileSystem(Paths.get(zipName), null)`
+
+* 要创建一个文件系统，它包含ZIP文档中的所有文件
+
+* fs.getPath方法对于任意文件系统来说都是与Paths.get类似
+
+## 内存映射文件
+
+### 内存映射文件的性能
+
+| 方法           | 时间 |
+| -------------- | ---- |
+| 普通输入流     | 110s |
+| 带缓冲的输入流 | 9.9s |
+| 随机访问文件   | 162s |
+| 内存映射文件   | 7.2s |
+
+* java.nio包使内存映射变得十分简单
+
+  * 首先，从文件中获得一个通道，通道是用于磁盘文件的一种抽象，它使我们可以访问诸如内存映射、文件加锁机制以及文件间快速数据传递等操作系统特性
+
+    `FileChannel channel = FileChannel.open(path, opetions)`
+
+  * 然后，通过调用FileChannel类的map方法从这个通道中获得一个ByteBuffer
+
+  * 你可以指定想要映射的文件区域与映射模式，支持的模式有三种
+
+    * FileChannel.MapMode.READ_ONLY：所产生的缓冲区是只读的，任何对该缓冲区写入的尝试都会导致ReadOnlyBufferException异常
+    * FileChannel.MapMode.READ_WRITE：所产生的缓冲区是可写的，任何修改都会在某个时候会到文件中，其他映射同一个文件的程序可能不能立即看到这些修改，多个程序同时进行文件映射的确切行为是依赖于操作系统的
+    * FileChannel.MapMode.PRIVATE：所产生的缓冲区是可写的，但是任何修改对这个缓冲区来说都是私有的，不会传播到文件中
+
+### 缓冲区数据结构
+
+* 缓冲区是由具有相同类型的数值构成的数组，Buffer类是一个抽象类，它有众多的具体子类
+
+* 最常用的将会是ByteBuffer和CharBuffer
+
+  * 一个容量，他永远不会改变
+  * 一个读写位置，下一个值将在此进行读写
+  * 一个界限，超过它进行读写是没有意义的
+  * 一个可选的标记，用于重复读入或写入操作
+
+  ![](D:\WorkSpace\Note\Java后端笔记\Java\一个缓冲区.jpg)
+
+* 调用flip方法将界限设置到当前位置，并把位置复位到0
+
+* remaining方法返回正数时（他返回值是界限-位置）
+
+* 调用get将缓冲区中所有的值都读入
+
+* 调用clear方法使缓冲区为下一次写循环做好准备，clear方法将位置复位到0，并将界限复位到容量
+
+* 如果想要重读缓冲区，可以使用rewind或mark/reset方法
+
+* 想要获取缓冲区，可以调用ByteBuffer.allocate或ByteBuffer.wrap
+
+## 文件加锁机制
+
+* FileLock lock()——在整个文件上获得一个独占的锁，这个方法降阻塞直至获得锁
+* FileLock tryLock()——在整个文件上获得要给独占的锁，或者在无法获得锁的情况下返回null
+* void close()——释放这个锁
+
+## 正则表达式
+
+* 正则表达式用于指定字符串的模式
+* 可以在任何需要定位匹配某种特定模式的字符串的情况下使用正则表达式
+
+### 正则表达式语法
+
+| 表达式                                                 | 描述                                                         |
+| ------------------------------------------------------ | ------------------------------------------------------------ |
+| c, 除.\*+?{\|()[\\^$之外                               | 字符c                                                        |
+| .                                                      | 任何除行终止符之外的字符，或者在DOTALL标志被设置时表示任何字符 |
+| \\x{p}                                                 | 十六进制码为p的Unicode码点                                   |
+| \uhhhh,\xhh,\0o,\0oo,\0ooo                             | 具有给定十六进制或八进制的码元                               |
+| \a,\e,\f,\n,\r,\t                                      | 转义字符                                                     |
+| \cc，其中c在[A-Z]的范围内或者时@[\\]^\_?之一           | 对应于字符c的控制字符                                        |
+| \c，其中c不在[A-Za-z0-9]的范围                         | 字符c                                                        |
+| \Q...\E                                                | 在左引号和右引号之间的所有字符                               |
+| [C1C2...]，其中C1是多个字符，其范围从c-d，或者是字符类 | 任何由C1，C3，...表示的字符                                  |
+| [^...]                                                 | 某个字符类的补集                                             |
+| [...&&...]                                             | 字符集的交集                                                 |
+| \p{...}，\P{...}                                       | 某个预定义字符类；它的补集                                   |
+| \d，\D                                                 | 数字；它的补集                                               |
+| \w，\W                                                 | 单词字符；它的补集                                           |
+| \s，\S                                                 | 空格；它的补集                                               |
+| \h，\v，\H，\V                                         | 水平空白字符、垂直空白字符；它们的补集                       |
+| XY                                                     | 任何X中的字符串，后面跟追随任意Y中的字符串                   |
+| X\|Y                                                   | 任何X或者Y中的字符串                                         |
+| (X)                                                    | 捕获X的匹配                                                  |
+| \n                                                     | 第n组                                                        |
+| (?<name>X)                                             | 捕获于给定名字匹配的X                                        |
+| \k<name>                                               | 具有给定名字的组                                             |
+| (?:X)                                                  | 使用括号但是不捕获X                                          |
+| X?                                                     | 可选X                                                        |
+| X*，X+                                                 | 0或多个X，1或多个X                                           |
+| X{n}，X{n,}，X{m, n}                                   | n个X，至少n个X，m到n个X                                      |
+| ^，$                                                   | 输入的开头和结尾                                             |
+| \A，\Z，\z                                             | 输入的开头、输入的结尾、输入的绝对结尾                       |
+| \b，\B                                                 | 单词边界，非单词边界                                         |
+| \R                                                     | Unicode行分隔符                                              |
+| \G                                                     | 前一个匹配的结尾                                             |
