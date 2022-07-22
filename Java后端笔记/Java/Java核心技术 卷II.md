@@ -723,3 +723,75 @@
 | \b，\B                                                 | 单词边界，非单词边界                                         |
 | \R                                                     | Unicode行分隔符                                              |
 | \G                                                     | 前一个匹配的结尾                                             |
+
+* 大部分字符都可以与它们自身匹配
+* .符号剋以匹配任何字符
+* 使用\作为转义字符
+* ^和$分别匹配一行的开头和结尾
+* 如果X和Y是正则表达式，那么XY表示“任何X的匹配后面跟随Y的匹配”，X|Y表示“任何X或Y的匹配”
+* 可以将量词运用到表达式X：X+、X*与X?
+* 默认情况下，量词要匹配能够使整个匹配成功的最大可能的重复次数。可以修改这个默认行为，方法是使用后缀?（使用勉强或吝啬匹配，也就是匹配最小的重复次数）或者使用后缀+（使用占有或贪婪匹配，也就是及时让整个匹配失败，也要匹配最大的次数）
+* 使用群组来定义子表达式，其中群组用括号()括起来
+
+### 匹配字符串
+
+* 首先用表示正则表达式的字符串构建一个Pattern对象，然后从这个表达式中获得一个Matcher，并调用它的matches方法
+
+  ```java
+  Pattern pattern = Pattern.compile(patternString):
+  Matcher matcher = pattern.matcher(input)
+  ```
+
+* 在编译过程中，可以设置一个或多个标志
+
+  ```java
+  Pattern pattern = Pattern.compile(expression, 标志)
+  ```
+
+  * Pattern.CASE_INSENSITIVE或i：匹配字符时忽略字母的大小写，默认情况下，这个标志只考虑US ASCII字符
+  * Pattern.UNICODE_CASE或u：当与CASE_INSENSITIVE组合使用时，用Unicode字母的大小写来匹配
+  * Pattern.MULTILINE或m：^和$匹配行的开头和结尾，而不是整个输入的开头和结尾
+  * Pattern.UNIX_LINES或d：在多行模式中匹配^和$时，只有‘\n’被识别成行终止符
+  * Pattern.DOTALL或s：当使用这个标志时，.符号匹配所有字符，包括行终止符
+  * Pattern.COMMENTS或x：空白字符和注释将被忽略
+  * Pattern.CANON_EQ：考虑Unicode字符规范的等价性
+
+  最后两个标志不能在正则表达式内部指定
+
+* 如果想要在流中匹配元素，可以将模式转换为谓词
+
+  ```
+  Stream<String> strings = ...;
+  Stream<String> result = strings.filter(pattern.asPredicate());
+  ```
+
+* 如果正则表达式包含群组，那么Matcher对象可以揭示群组的边界
+
+  ```java
+  int start(int groupIndex);
+  int end(int groupIndex);
+  ```
+
+* 可以直接调用`String group(int groupIndex)`抽取匹配的字符串
+
+### 找出多个匹配
+
+* 想找出输入中一个或多个匹配的子字符串，这是可以使用Matcher类的find方法来查找匹配内容，如果返回true，在使用start和end方法来查找匹配内容，或者使用不带引元的group方法来获取匹配的字符串
+* 可以调用results方法获取一个Stream<MatchResult>
+* 如果处理的是文件中的数据，那么可以使用Scanner.findAll方法来获取一个Stream<MatchResult>，这样就无需先将内容读取到一个字符串中
+
+### 用分隔符来分割
+
+* 需要将输入按照匹配的分隔符断开，而其他部分保持不变，Pattern.split方法可以自动完成这项任务
+
+* 如果有多个标记，那么可以惰性获取它们
+
+  `Stream<String> tokens = xxx.splitAsStream(input)`
+
+### 替换匹配
+
+* Matcher类的replaceAll方法将正则表达式出现的所有地方都用替换字符串来替换
+* replaceFirst方法将只替换模式的第一次出现
+
+# XML
+
