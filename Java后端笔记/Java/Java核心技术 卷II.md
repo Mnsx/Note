@@ -876,5 +876,147 @@
 
   `formatter = DateTimeFormatter.ofPattern("xxx")`
 
+# Java注解
+
+## 内置的注解
+
+* 作用在代码的注解
+
+  * @Override-检查该方法是否是重写方法，如果发现其父类，或者是引用的接口并没有该方法时，会报编译错误
+
+  * @Deprecated-标记过时方法，如果使用该方法，会报编译错误
+
+  * @SuppressWarnings-指示编译器去忽略注释中声明的警告
+
+* 作用在其他注解的注解（元注解）
+  * @Retention-标识这个注解怎么保存，是只在代码中，还是编入class文件中，或者是在运行时可以通过反射访问
+  * @Documented-标记这些注解是否包含在用户文档中
+  * @Target-标记这个注解应该是那种Java成员
+  * @Inherited-标记这个注解是继承于那个注解类（默认 注解并没有继承于任何子类）
+* 在Java7开始，额外添加了3个注解
+  * @SafeVarargs-Java7开始支持，忽略任何使用参数为范型变量的方法或构造函数调用产生的警告
+  * @FunctionalInterface-Java8开始支持，标识一个匿名函数或函数式接口
+  * @Repeatable-Java8开始支持，标识某注解可以在同一声明上使用多次
+
+## Annotation架构
+
+![](D:\WorkSpace\Note\Java后端笔记\Java\Annotation架构.jpg)
+
+* 1个Annotation和1个RetentionPolicy关联，可以理解为：每个Annotation对象，都会有唯一的RetentionPolicy
+* 1个Annotation和1-n个ElementType关联，可以理解为：每个Annotation对象，可以有若干个ElementType属性
+* Annotation有许多实现类，包括Deprecated、Documented、Inherited、Override等
+
+## Annotation组成部分
+
+* Java Annotation的组成中，有3个非常重要的主干类
+
+  ```java
+  package java.lang.annotation;
+  
+  public interface Annotation {
+      boolean equals(Object obj);
+      
+      int hashCode();
+      
+      String toString();
+      
+      Class<? extends Annotation> annotationType();
+  }
+  ```
+
+  ```java
+  package java.lang.annotation;
+  
+  public enum ElementType {
+      TYPE, // 类、接口（包含注释类型）或枚举声明
+      FIELD, //字段声明（包含枚举常量）
+      METHOD, //方法声明
+      PARAMETER, //参数声明
+      CONSTRUCTOR, //构造器声明
+      LOCAL_VARIABLE, //局部变量声明
+      ANNOTATION_TYPE, //注解类型声明
+      PACKAGE //包声明
+  }
+  ```
+
+  ```java
+  package java.lang.annotation;
+  
+  public enum RetentionPolicy {
+      SOURCE, //Annotation信息仅存在于编译器处理期间，遍历器处理完之后就没有该Annotation信息了
+      CLASS, //编译器将Annotation存储于类对应的class文件中，默认行为
+      RUNTIME, //编译器将Annotation存储在class文件中，并且可以由JVM读入
+  }
+  ```
+
+* Annotation就是个接口
+
+* ElementType时Enum枚举类型，它用来指定Annotation的类型
+
+* RetentionPolicy时Enum枚举类型，它用来指定Annotation的策略，通俗的说，就是不同的RetentionPolicy类型的Annotation的作用域不同
+
+  * 若Annotation的类型时SOURCE，则以为着：Annotation仅存在于编译器处理期间，编译器处理完之后，该Annotation就没有用了
+  * 若Annotation的类型为CLASS，则意味着：编译器将Annotation存储在类对应的class文件中，他是Annotation的默认行为
+  * 若Annotation的类型为RUNTIME，则意味着：编译器将Annotation存储于class文件中，并且可由JVM读入
+
+## java自带的Annotation
+
+### Annotation通用定义
+
+```java
+@Documented
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MyAnnotation1 {
+}
+```
+
+* @interface
+
+  使用@interface定义注解时，意味着它实现了java.annotation.Annotation接口
+
+  定义Annotation时，@interface时必须的
+
+  **他和我们通常的implements实现接口的方法不同，Annotation接口的实现细节都有编译器完成，通过@interface定义注解后，该注解不能继承其他的注解或接口**
+
+* @Documented
+
+  类和方法的Annotation的缺省情况下是不出现在javadoc中的
+
+* @Target(ElementType.TYPE)
+
+  @Target的作用，就是用来指定Annotation的类型属性
+
+  若由@Target，则该Annotation只能用于它所指定的地方，若没有@Target，则该Annotation可以用于任何地方
+
+* @Retention(RetentionPolicy.RUNTIME)
+
+  @Retention的作用，就是指定Annotation的策略属性
+
+### java自带的Annotation
+
+* java常用的Annotation
+
+  ```java
+  @Deprecated  -- @Deprecated 所标注内容，不再被建议使用。
+  @Override    -- @Override 只能标注方法，表示该方法覆盖父类中的方法。
+  @Documented  -- @Documented 所标注内容，可以出现在javadoc中。
+  @Inherited   -- @Inherited只能被用来标注“Annotation类型”，它所标注的Annotation具有继承性。
+  @Retention   -- @Retention只能被用来标注“Annotation类型”，而且它被用来指定Annotation的RetentionPolicy属性。
+  @Target      -- @Target只能被用来标注“Annotation类型”，而且它被用来指定Annotation的ElementType属性。
+  @SuppressWarnings -- @SuppressWarnings 所标注内容产生的警告，编译器会对这些警告保持静默。
+  ```
+
+## Annotation的作用
+
+* 编译检查
+
+  * @SuppressWarnnings和@Deprecated
+
+  * 若某个方法被@Override的标注，则意味着该方法会覆盖父类中的同名方法，如果方法被@Override标识，但父类灭有被@Override标注的同名方法，则编译器会报错
+
+* 在反射中使用Annotation
+* 根据Annotation生成帮助文档
+
 
 
