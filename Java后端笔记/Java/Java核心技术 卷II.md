@@ -793,5 +793,88 @@
 * Matcher类的replaceAll方法将正则表达式出现的所有地方都用替换字符串来替换
 * replaceFirst方法将只替换模式的第一次出现
 
-# XML
+# 日期和时间API
+
+## 日期线
+
+* Java的Date和Time API规范要求Java使用的时间尺度为
+  * 每天86400秒
+  * 每天正午与官方时间精确匹配
+  * 在其他时间点上，以精确定义的方式与官方时间接近匹配
+* 静态方法调用Instant.now()会给出当前的时刻，可以使用equals和compareTo方法来比较两个Instant对象，因此可以将Instant对象用作时间戳
+* Duration是两个时刻之间的时间量，你可以通过调用toNanos、toMillis、getSeconds、toMinutes、toHours和toDays来获得Duration按照传统单位度量的时间长度
+* Instant和Duration类都是不可修改的类，所以其方法都会返回一个新的实例
+
+## 本地日期
+
+* LocalDate是带有年、月、日的日期，为了构建LocalDate对象，可以使用now或of静态方法
+* 用于本地日期的等价物是Period，他表示的是流逝的年、月或日的数量
+
+### 日期调整器
+
+* TemporalAdjusters类提供了大量用于常见调整的静态方法
+* 还可以通过实现TemporalAdjuster类来创建自己的调整器
+* 使用with方法会返回一个新的LocalDate对象，而不会修改原来的对象，with加上调整器能够生成新的LocalDate
+* lambda表达式的参数类型为Temporal，它必须被强制转型为LocalDate
+* 可以用ofDateAdjuster方法来避免这种强制转型，该方法期望得到的参数是类型为UnaryOperator<LocalDate>的lambda表达式
+
+## 本地时间
+
+* LocalTime表示当日时刻，可以用now或of方法创建其实例
+* API说明展示了常见的对本地时间的操作，plus和minus操作是按照一天24小时循环操作的
+* LocalDateTime类表示日期和时间，这个类适合存储固定时区的时间点
+* 如果计算需要跨越夏令时，或者需要处理不同失去的用户，那么可以使用ZonedDateTime
+
+## 时区时间
+
+* 给定一个时区Id，静态方法ZoneId.of(id)可以产生一个ZoneId对象
+* 可以通过调用local.atZone(zoneId)用这个对象将LocalDateTime转换为ZonedDateTime对象，或者可以通过调用静态方法ZonedDateTime.of(year, month, day, hour, minute, second, nano, zoneId)来构造一个ZonedDateTime对象
+
+## 格式化和解析
+
+* DateTimeFormatter类提供了三种用于打印日期/时间值的格式器
+
+  * 预定义的格式器
+  * locale相关的格式器
+  * 带有定制模式的格式器
+
+* 预定义的格式器
+
+  | 格式器                                                 | 描述                                                         |
+  | ------------------------------------------------------ | ------------------------------------------------------------ |
+  | BASIC_ISO_DATE                                         | 年、月、日、时区偏移量，中间没有分隔符                       |
+  | ISO_LOCAL_DATE, ISO_LOCAL_TIME, ISO_LOCAL_DATE_TIME    | 分隔符为-、:、T                                              |
+  | ISO_OFFSET_DATE, ISO_OFFSET_TIME, ISO_OFFSET_DATE_TIME | 类似ISO_LOCAL_XXX，但是有时区偏移量                          |
+  | ISO_ZONED_DATE_TIME                                    | 有时区偏移量和时区ID                                         |
+  | ISO_INSTANT                                            | 在UTC中，用z时区ID来表示                                     |
+  | ISO_DATE, ISO_TIME, ISO_DATE_TIME                      | 类似ISO_OFFSET_DATE，ISO_OFFSET_TIME和ISO_ZONED_DATE_TIME，但是时区信息可选 |
+  | ISO_ORDINAL_DATE                                       | LocalDate的年和年日期                                        |
+  | ISO_WEEK_DATE                                          | LocalDate的年、星期和星期日期                                |
+  | RFC_1123_DATE_TIME                                     | 用于邮件时间戳的标准，编纂于RFC822、并在RFC1123中将年份更新到4位 |
+
+* 要使用标准的格式器，可以直接调用其format方法
+
+  `String formatted = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(app)`
+
+* 标准格式器主要是为了机器可读的使劲啊戳而设计，为了向人类读者表示日期和时间，可以使用Locale相关的格式器
+
+  | 风格   | 日期                     | 时间           |
+  | ------ | ------------------------ | -------------- |
+  | SHORT  | 7/16/69                  | 9:32 AM        |
+  | MEDIUM | Jul 16, 1969             | 9:32:00 AM     |
+  | LONG   | July 16, 1969            | 9:32:00 AM EDT |
+  | FULL   | Wednesday, July 16, 1969 | 9:32:00 AM EDT |
+
+* 静态方法ofLocalizedDate、ofLocalizedTime和ofLocalizedDateTime可以创建这个格式器
+
+  ```java
+  DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(ForMatStyle.LONG);
+  String formatted = formatter.format(app);
+  ```
+
+* 可以通过指定模式来定制自己的日期格式
+
+  `formatter = DateTimeFormatter.ofPattern("xxx")`
+
+
 
